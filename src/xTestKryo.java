@@ -36,7 +36,7 @@ public class xTestKryo {
 	
 	//String kryoPath = "/Users/Chris/test/kryo.txt";
 	//String javaSPath = "/Users/Chris/test/javaS.txt";
-	// added this from windows.
+	// added this from windows. also added this.
 	String kryoPath = "C:\\tempTest\\kryo.txt";
 	String javaSPath = "C:\\tempTest\\javaS.txt";
 	Kryo kryo;
