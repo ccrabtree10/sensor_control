@@ -19,7 +19,7 @@ public class xTestBox implements Serializable {//, KryoSerializable {
 		astring = "astring in box";
 		bstring = "bstring in box";
 		cstring = "cstring in box";
-		//alabel = new JLabel("Box label");
+		alabel = new JLabel("Box label");
 	}
 	
 	

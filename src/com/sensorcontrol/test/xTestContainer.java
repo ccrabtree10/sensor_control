@@ -14,20 +14,20 @@ import java.util.HashMap;
 import java.util.logging.Level;
 
 public class xTestContainer implements Serializable {// , KryoSerializable { 
-	//String astring, bstring, cstring;
-	//JLabel alabel;
+	String astring, bstring, cstring;
+	JLabel alabel;
 	JButton abutton;
-	//xTestBox abox;
-	//HashMap<String, String> ahashmap;
+	xTestBox abox;
+	HashMap<String, String> ahashmap;
 
 	public xTestContainer() {
 		log("cons");
-		//astring = "a string in continer";
-		//alabel = new JLabel("Container label");
+		astring = "a string in continer";
+		alabel = new JLabel("Container label");
 		abutton = new JButton("touch me");
-		//abox = new xTestBox();
-		//ahashmap = new HashMap<String, String>();
-		//ahashmap.put("name", "chris");
+		abox = new xTestBox();
+		ahashmap = new HashMap<String, String>();
+		ahashmap.put("name", "chris");
 	}
 	
 	
