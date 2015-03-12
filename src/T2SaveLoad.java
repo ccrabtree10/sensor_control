@@ -22,6 +22,7 @@ import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.esotericsoftware.minlog.Log;
 import com.jidesoft.swing.RangeSlider;
+import com.sensorcontrol.main.ControlPanel;
 
 
 public class T2SaveLoad 

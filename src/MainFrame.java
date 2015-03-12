@@ -55,6 +55,7 @@ import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 import com.phidgets.PhidgetException;
+import com.sensorcontrol.main.ControlPanel;
 import com.thoughtworks.xstream.XStream;
 
 public class MainFrame extends JFrame

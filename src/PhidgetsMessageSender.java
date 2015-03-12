@@ -16,6 +16,7 @@ import javax.swing.JSlider;
 
 import com.jidesoft.swing.RangeSlider;
 import com.phidgets.event.SensorChangeEvent;
+import com.sensorcontrol.main.ControlPanel;
 
 
 public class PhidgetsMessageSender implements IMessageSender, Serializable
