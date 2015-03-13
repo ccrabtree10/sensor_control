@@ -46,15 +46,17 @@ public class xTestKryo {
 	public static void main(String args[]) {
 		xTestKryo x = new xTestKryo();
 		xTestContainer obToSave = new xTestContainer();
-		x.log("saving with kryo");
-		x.saveWithKryo(obToSave);
+		
+		
+		//x.log("saving with kryo");
+		//x.saveWithKryo(obToSave);
 		//x.log("saving with javaS");
 		//x.saveWithJavaS(obToSave);
 		
 		
 		
-		x.log("loading with kryo");
-		x.loadWithKryo();
+		//x.log("loading with kryo");
+		//x.loadWithKryo();
 		//x.log("loading with javaS");
 		//x.loadWithJavaS();
 		

@@ -20,7 +20,7 @@ import com.phidgets.PhidgetException;
 import com.sensorcontrol.modules.GraphModule;
 import com.sensorcontrol.modules.IMessageSender;
 import com.sensorcontrol.modules.IModule;
-import com.sensorcontrol.modules.midiin.MoModule;
+import com.sensorcontrol.modules.midiout.MoModule;
 import com.sensorcontrol.modules.midinote.StMnModule;
 import com.sensorcontrol.modules.phidgets.PhidgetsModule;
 
