@@ -1,22 +1,11 @@
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 import com.phidgets.*;
 import com.phidgets.event.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.basic.BasicBorders;
-import javax.swing.BorderFactory;
 
 public class PhidgetsModule implements IModule, AttachListener, SensorChangeListener
 {
@@ -25,13 +14,24 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 	private transient IModuleChangeListener moduleChangeListener;
 	private JPanel controlPanel, moduleControlPanel;
 	private JLabel debugLabel;
+	private ExecutorService exe;
+	private ExecutorService[] exes;
 	
-	public PhidgetsModule() throws PhidgetException
-	{
+	// !!! debug
+	private static int counter = 0;
+	
+	public PhidgetsModule() throws PhidgetException {
 		messageSenders = new PhidgetsMessageSender[8];
-		for (int x=0; x<8; x++)
-		{
+		for (int x=0; x<8; x++) {
 			messageSenders[x] = new PhidgetsMessageSender(x);
+		}
+		
+		//exe = Executors.newSingleThreadExecutor();
+		//exe = Executors.newCachedThreadPool();
+		
+		exes = new ExecutorService[8];
+		for (int x=0; x<exes.length; x++) {
+			exes[x] = Executors.newSingleThreadExecutor();
 		}
 		
 		ikp = new InterfaceKitPhidget();
@@ -41,18 +41,28 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 		ikp.addSensorChangeListener(this);
 	}	
 	
-	public void attached(AttachEvent ae)
-	{
-		try 
-		{
+	public void attached(AttachEvent ae) {
+		try {
 			System.out.println(ae.getSource().getSerialNumber());
-		} 
-		catch (PhidgetException pe) {}
+		} catch (PhidgetException pe) {}
 	}
 	
-	public void sensorChanged(SensorChangeEvent sce) 
-	{
-		messageSenders[sce.getIndex()].send(sce);
+	public synchronized void sensorChanged(final SensorChangeEvent sce) {
+		exes[sce.getIndex()].execute(new Runnable() {
+			int c = counter;
+			public void run() {
+				messageSenders[sce.getIndex()].send(new SensorChangeEvent(ikp, 0, c));	
+			}
+		});
+		/*Thread t = new Thread(new Runnable() {
+			int c = counter;
+			public void run() {
+				messageSenders[sce.getIndex()].send(new SensorChangeEvent(ikp, 0, c));	
+			}
+		});
+		t.start();*/
+		counter++;
+		//messageSenders[sce.getIndex()].send(sce);	
 	}
 
 	public Object[] getMessageSenders()

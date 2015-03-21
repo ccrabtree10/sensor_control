@@ -209,7 +209,6 @@ public class StMcControllerConverter implements StMcIConverter
 	
 	private ShortMessage convertContinuous(MessageSensor message) throws InvalidMidiDataException
 	{
-		System.out.println("continuous convert");
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		float ratio = (rangeMax - rangeMin)/127;
 		midiValue = Math.round((midiValue * ratio) + rangeMin);

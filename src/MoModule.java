@@ -18,7 +18,7 @@ public class MoModule implements IModule
 	{
 		this.name = name;
 		listener = new MoMessageListener();
-		midiPort = new TeVirtualMIDI(name);
+		//midiPort = new TeVirtualMIDI(name);
 		listener.setMidiPort(midiPort);
 	}
 

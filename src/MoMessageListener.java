@@ -11,10 +11,12 @@ public class MoMessageListener implements IMessageListenerMidi
 		this.midiPort = midiPort;
 	}
 	
-	public void receive(ShortMessage message) 
+	public synchronized void receive(ShortMessage message) 
 	{
-		midiPort.sendCommand(message.getMessage());
-		System.out.println("MoLis receive: "+message.getChannel()+", "+message.getData1()+", "+message.getData2());
+		//midiPort.sendCommand(message.getMessage());
+		su.log.log(su.f, "received");
+		
+		//System.out.println("MoLis receive: "+message.getChannel()+", "+message.getData1()+", "+message.getData2());
 	}
 	
 	public String toString()

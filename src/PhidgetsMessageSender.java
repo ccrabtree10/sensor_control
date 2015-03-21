@@ -6,6 +6,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -30,6 +32,7 @@ public class PhidgetsMessageSender implements IMessageSender, Serializable
 	private RangeSlider onOffControl;
 	private JComponent[][] controls;
 	private ControlPanel controlPanel;
+	private ExecutorService exe;
 	
 	public static final int CON_TO_SWITCH_THRESH_DEF = 500, SWITCH_TO_CON_OFF_DEF = 200, SWITCH_TO_CON_ON_DEF = 800;
 	
@@ -37,6 +40,7 @@ public class PhidgetsMessageSender implements IMessageSender, Serializable
 	{
 		listeners = new ArrayList<IMessageListenerSensor>();
 		this.index = String.valueOf(index);
+		exe = Executors.newCachedThreadPool();
 	}
 
 	public void addMessageListener(Object listener) throws ClassCastException
@@ -45,16 +49,25 @@ public class PhidgetsMessageSender implements IMessageSender, Serializable
 		listeners.add(newListener);
 	}
 	
-	public void send(SensorChangeEvent sce)
-	{
-			MessageSensor message = new MessageSensor(sce.getValue()); 
-			Iterator iterator = listeners.iterator();
-			while(iterator.hasNext())
-			{
-				IMessageListenerSensor listener = (IMessageListenerSensor) iterator.next();
-				//System.out.println("PhiMod send: "+listener);
-				listener.receive(message);
-			}
+	public synchronized void send(SensorChangeEvent sce) {
+		/*su.log.log(su.f, "sending " + sce.getValue());
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			
+		}*/
+		final MessageSensor message = new MessageSensor(sce.getValue()); 
+		Iterator<IMessageListenerSensor> iterator = listeners.iterator();
+		while(iterator.hasNext()) {
+			final IMessageListenerSensor listener = (IMessageListenerSensor) iterator.next();
+			exe.execute(new Runnable() { 
+				public void run() {
+					su.log.log(su.f, "sending to converter");
+					listener.receive(message);
+				}
+			});
+			//listener.receive(message);
+		}
 	}
 	
 	public String toString()

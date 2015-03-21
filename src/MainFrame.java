@@ -18,6 +18,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -57,6 +58,8 @@ import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 import com.phidgets.PhidgetException;
 import com.thoughtworks.xstream.XStream;
+import java.util.logging.Logger;
+
 
 public class MainFrame extends JFrame
 {
@@ -69,7 +72,8 @@ public class MainFrame extends JFrame
 	Kryo kryo;
 	
 	public MainFrame() 
-	{
+	{	
+		su.init();
 		Log.set(Log.LEVEL_DEBUG);
 		kryo = new Kryo();
 		kryo.register(GraphModule.class, new ModuleSerializer(kryo, GraphModule.class));

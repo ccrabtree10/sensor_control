@@ -1,6 +1,8 @@
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -10,6 +12,11 @@ public class StMcMessageListenerSensor implements IMessageListenerSensor
 {
 	ArrayList<IMessageListenerMidi> midiListeners;
 	StMcIConverter currentConverter;
+	private ExecutorService exe;
+	
+	public StMcMessageListenerSensor() {
+		exe = Executors.newCachedThreadPool();
+	}
 
 	public void setMidiListeners(ArrayList<IMessageListenerMidi> midiListeners)
 	{
@@ -21,21 +28,22 @@ public class StMcMessageListenerSensor implements IMessageListenerSensor
 		this.currentConverter = currentConverter;
 	}
 	
-	public void receive(MessageSensor message) 
-	{
-		try 
-		{
-			ShortMessage midiMessage = currentConverter.generateMessage(message);
-			Iterator iterator = midiListeners.iterator();
-			while(iterator.hasNext())
-			{
-				IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
-				System.out.println("StmLis: Message sent to: "+midiListener+", "+midiMessage.getChannel()+", "+midiMessage.getData1()+", "+midiMessage.getData2());
-				midiListener.receive(midiMessage);
+	public synchronized void receive(MessageSensor message) {
+		try {
+			final ShortMessage midiMessage = currentConverter.generateMessage(message);
+			Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
+			while(iterator.hasNext()) {
+				final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
+				exe.execute(new Runnable() { 
+					public void run() {
+						su.log.log(su.f, "sending to midi out module");
+						midiListener.receive(midiMessage);
+					}
+				});
+				//midiListener.receive(midiMessage);
 			}
 		} 
-		catch (InvalidMidiDataException e) 
-		{
+		catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}
 	}
