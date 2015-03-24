@@ -123,6 +123,9 @@ public class MainFrame extends JFrame
 		
 		graphComponent.setDragEnabled(false);
 		
+		// !!! debug - auto setup test session.
+		graphComponent.setupTestSession();
+		
 		insertPhidgetsModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {

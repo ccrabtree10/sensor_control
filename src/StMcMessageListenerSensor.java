@@ -29,7 +29,9 @@ public class StMcMessageListenerSensor implements IMessageListenerSensor
 	}
 	
 	public synchronized void receive(MessageSensor message) {
-		try {
+		// !!! Change this try catch to just set shortmessage, then test for null,
+		// or could just return in the exception handler.
+		/*try {
 			final ShortMessage midiMessage = currentConverter.generateMessage(message);
 			Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
 			while(iterator.hasNext()) {
@@ -40,12 +42,11 @@ public class StMcMessageListenerSensor implements IMessageListenerSensor
 						midiListener.receive(midiMessage);
 					}
 				});
-				//midiListener.receive(midiMessage);
 			}
-		} 
-		catch (InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}
+		*/
 	}
 	
 	public String toString()

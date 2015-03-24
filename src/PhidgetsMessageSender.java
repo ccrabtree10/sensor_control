@@ -50,23 +50,16 @@ public class PhidgetsMessageSender implements IMessageSender, Serializable
 	}
 	
 	public synchronized void send(SensorChangeEvent sce) {
-		/*su.log.log(su.f, "sending " + sce.getValue());
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			
-		}*/
-		final MessageSensor message = new MessageSensor(sce.getValue()); 
+		final MessageSensor message = new MessageSensor(sce.getValue());
 		Iterator<IMessageListenerSensor> iterator = listeners.iterator();
 		while(iterator.hasNext()) {
 			final IMessageListenerSensor listener = (IMessageListenerSensor) iterator.next();
 			exe.execute(new Runnable() { 
 				public void run() {
-					su.log.log(su.f, "sending to converter");
+					//su.log.log(su.f, "sending to converter");
 					listener.receive(message);
 				}
 			});
-			//listener.receive(message);
 		}
 	}
 	

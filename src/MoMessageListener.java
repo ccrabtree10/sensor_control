@@ -14,9 +14,9 @@ public class MoMessageListener implements IMessageListenerMidi
 	public synchronized void receive(ShortMessage message) 
 	{
 		//midiPort.sendCommand(message.getMessage());
-		su.log.log(su.f, "received");
+		su.log.log(su.f, "received " + message.getData2());
 		
-		//System.out.println("MoLis receive: "+message.getChannel()+", "+message.getData1()+", "+message.getData2());
+		
 	}
 	
 	public String toString()

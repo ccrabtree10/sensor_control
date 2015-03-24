@@ -32,6 +32,7 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 		exes = new ExecutorService[8];
 		for (int x=0; x<exes.length; x++) {
 			exes[x] = Executors.newSingleThreadExecutor();
+			//exes[x] = Executors.newCachedThreadPool();
 		}
 		
 		ikp = new InterfaceKitPhidget();
@@ -47,20 +48,19 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 		} catch (PhidgetException pe) {}
 	}
 	
-	public synchronized void sensorChanged(final SensorChangeEvent sce) {
+	// This method that calls this method will wait for it to finish before sending
+	// the next event. Therefore, it doesn't need to be synchronized.
+	public void sensorChanged(final SensorChangeEvent sce) {
+		long start = System.currentTimeMillis();
 		exes[sce.getIndex()].execute(new Runnable() {
 			int c = counter;
 			public void run() {
 				messageSenders[sce.getIndex()].send(new SensorChangeEvent(ikp, 0, c));	
 			}
 		});
-		/*Thread t = new Thread(new Runnable() {
-			int c = counter;
-			public void run() {
-				messageSenders[sce.getIndex()].send(new SensorChangeEvent(ikp, 0, c));	
-			}
-		});
-		t.start();*/
+		//messageSenders[sce.getIndex()].send(new SensorChangeEvent(ikp, 0, counter));
+		long dt = System.currentTimeMillis() - start;
+		//System.out.println(dt);
 		counter++;
 		//messageSenders[sce.getIndex()].send(sce);	
 	}

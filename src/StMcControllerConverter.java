@@ -114,8 +114,7 @@ public class StMcControllerConverter implements StMcIConverter
 		return controlPanel;
 	}
 	
-	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException
-	{
+	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException {
 		ShortMessage midiMessage = null;
 		try {
 			midiMessage = (ShortMessage) conversionMethod.invoke(this, message);
