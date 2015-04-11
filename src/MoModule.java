@@ -55,5 +55,23 @@ public class MoModule implements IModule
 	public void initialize() {
 		
 	}
+
+	@Override
+	public String getListenerLabel(int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getSenderLabel(int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getLabel() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

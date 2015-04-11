@@ -23,11 +23,9 @@ import javax.swing.JSlider;
 
 import com.jidesoft.swing.RangeSlider;
 
-public class StMcModule implements IModule
+public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender
 {
 	private ArrayList<IMessageListenerMidi> midiListeners;
-	private StMcMessageListenerSensor messageListener;
-	private StMcMessageSender messageSender;
 	private transient JLabel commandLabel, moduleLabel;
 	private JComboBox<StMcIConverter> commandSelector;
 	private transient JPanel converterControlPanel;
@@ -40,22 +38,18 @@ public class StMcModule implements IModule
 		commandSelector = new JComboBox<StMcIConverter>();
 		commandSelector.setModel(new DefaultComboBoxModel<StMcIConverter>());
 		commandSelector.addItem(new StMcControllerConverter());
-		commandSelector.addItem(new StmNoteConverter());
-		
-		messageListener = new StMcMessageListenerSensor();
-		messageSender = new StMcMessageSender();
-		
+		commandSelector.addItem(new StmNoteConverter());		
 		initialize();
 	}
 
 	public Object[] getMessageSenders() 
 	{
-		return new Object[]{messageSender};
+		return new Object[]{this};
 	}
 
 	public Object[] getMessageListeners() 
 	{
-		return new Object[]{messageListener};
+		return new Object[]{this};
 	}
 
 	public String toString() 
@@ -99,28 +93,63 @@ public class StMcModule implements IModule
 		commandSelector.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) 
 			{
-				messageListener.setCurrentConverter(((StMcIConverter) commandSelector.getSelectedItem()));
-				controlPanel.remove(converterControlPanel);
-				converterControlPanel =((StMcIConverter) commandSelector.getSelectedItem()).getControlPanel();
-				controlPanel.add(converterControlPanel);
-				controlPanel.revalidate();
+				System.out.println("remove me!!!");
 			}
 		});
-		
-		messageListener.setCurrentConverter(((StMcIConverter) commandSelector.getSelectedItem()));
-		messageListener.setMidiListeners(midiListeners);
-		messageSender.setMidiListeners(midiListeners);
-		
+				
 		for(int x=0; x<commandSelector.getItemCount(); x++)
 		{
 			commandSelector.getItemAt(x).initialize();
 		}
 	}
 
-	@Override
 	public void setModuleChangeListener(IModuleChangeListener listener) {
-		// TODO Auto-generated method stub
 		
 	}
+
+	public String getListenerLabel(int index) {
+		return "In";
+	}
+
+	public String getSenderLabel(int index) {
+		return "Out";
+	}
+
+	public String getLabel() {
+		return "FUCKING BULL";
+	}
+
+	public void receive(MessageSensor message) {
+		System.out.println("receive");
+		// !!! Change this try catch to just set shortmessage, then test for null,
+		// or could just return in the exception handler.
+		/*try {
+			final ShortMessage midiMessage = currentConverter.generateMessage(message);
+			Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
+			while(iterator.hasNext()) {
+				final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
+				exe.execute(new Runnable() { 
+					public void run() {
+						su.log.log(su.f, "sending to midi out module");
+						midiListener.receive(midiMessage);
+					}
+				});
+			}
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
+		}
+		*/
+	}
+
+	public void addMessageListener(Object listener) throws ClassCastException {
+		IMessageListenerMidi midiListener = (IMessageListenerMidi) listener;
+		midiListeners.add(midiListener);
+		
+	}
+
+	public void removeMessageListener(Object listener) {
+		midiListeners.remove(listener);
+	}
+	
 	
 }

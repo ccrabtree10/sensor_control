@@ -63,7 +63,7 @@ import java.util.logging.Logger;
 
 public class MainFrame extends JFrame
 {
-	MainGraphComponent graphComponent;
+	DesignerPanel designerPanel;
 	
 	JMenuBar menubar;
 	JMenuItem insertStMcModule, insertStMnModule, insertMidiOutModule, insertPhidgetsModule, 
@@ -85,7 +85,7 @@ public class MainFrame extends JFrame
 		((DefaultInstantiatorStrategy) kryo.getInstantiatorStrategy()).setFallbackInstantiatorStrategy(new StdInstantiatorStrategy());
 		//kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
 		
-		graphComponent = new MainGraphComponent();
+		designerPanel = new DesignerPanel();
 		menubar = new JMenuBar();
 		insertStMcModule = new JMenuItem("Sensor To Midi CC");
 		insertStMnModule = new JMenuItem("Sensor To Midi Note");
@@ -118,18 +118,18 @@ public class MainFrame extends JFrame
 		this.setLayout(new BorderLayout());
 		this.setJMenuBar(menubar);
 		
-		this.add(graphComponent, BorderLayout.CENTER);
-		this.add(graphComponent.getInspectorPanel(), BorderLayout.EAST);
+		this.add(designerPanel, BorderLayout.CENTER);
+		this.add(designerPanel.getInspectorPanel(), BorderLayout.EAST);
 		
-		graphComponent.setDragEnabled(false);
+		designerPanel.setDragEnabled(false);
 		
 		// !!! debug - auto setup test session.
-		graphComponent.setupTestSession();
+		//designerPanel.setupTestSession();
 		
 		insertPhidgetsModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					graphComponent.addModule(new PhidgetsModule());
+					designerPanel.addModule(new PhidgetsModule());
 				} catch (PhidgetException e) {
 					e.printStackTrace();
 				}
@@ -138,27 +138,27 @@ public class MainFrame extends JFrame
 		
 		insertStMcModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				graphComponent.addModule(new StMcModule());
+				designerPanel.addModule(new StMcModule());
 			}
 		});
 		
 		insertStMnModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				graphComponent.addModule(new StMnModule());
+				designerPanel.addModule(new StMnModule());
 			}
 		});
 		
 		insertMidiOutModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String name = JOptionPane.showInputDialog("Enter output port name: ");
-				graphComponent.addModule(new MoModule(name));
+				designerPanel.addModule(new MoModule(name));
 			}
 		});
 		
 		insertMiModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String name = JOptionPane.showInputDialog("Enter input port name: ");
-				graphComponent.addModule(new MiModule(name));
+				designerPanel.addModule(new MiModule(name));
 			}
 		});
 		
@@ -169,7 +169,7 @@ public class MainFrame extends JFrame
 				{
 					Input input = new Input(new FileInputStream("/Users/Chris/" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
 					SessionContainer container = kryo.readObject(input, SessionContainer.class);
-					graphComponent.getGraph().addCells(container.getCells());
+					designerPanel.getGraph().addCells(container.getCells());
 				} 
 				catch (FileNotFoundException e) 
 				{
@@ -187,7 +187,7 @@ public class MainFrame extends JFrame
 			{
 				try
 				{
-					Object[] cells = graphComponent.getGraph().getChildCells(graphComponent.getGraph().getDefaultParent());
+					Object[] cells = designerPanel.getGraph().getChildCells(designerPanel.getGraph().getDefaultParent());
 					SessionContainer container = new SessionContainer();
 					container.setCells(cells);
 					System.out.println(Arrays.toString(cells));
@@ -207,7 +207,7 @@ public class MainFrame extends JFrame
 		testSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
-				graphComponent.setupTestSession();
+				designerPanel.setupTestSession();
 			}
 		});
 		
@@ -223,6 +223,7 @@ public class MainFrame extends JFrame
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				frame.setSize(800, 320);
 				frame.setVisible(true);
+				
 			}
 		});
 		

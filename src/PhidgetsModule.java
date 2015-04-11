@@ -48,7 +48,7 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 		} catch (PhidgetException pe) {}
 	}
 	
-	// This method that calls this method will wait for it to finish before sending
+	// The caller of this method will wait for it to return before sending
 	// the next event. Therefore, it doesn't need to be synchronized.
 	public void sensorChanged(final SensorChangeEvent sce) {
 		long start = System.currentTimeMillis();
@@ -99,5 +99,17 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 	public void setModuleChangeListener(IModuleChangeListener listener) 
 	{
 		moduleChangeListener = listener;
+	}
+
+	public String getListenerLabel(int index) {
+		return null;
+	}
+
+	public String getSenderLabel(int index) {
+		return Integer.toString(index);
+	}
+
+	public String getLabel() {
+		return "Phidgets Board";
 	}
 }

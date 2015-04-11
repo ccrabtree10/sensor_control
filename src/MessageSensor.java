@@ -1,16 +1,13 @@
 
 
-public class MessageSensor 
-{
+public class MessageSensor {
 	private int value;
 	
-	public MessageSensor(int value)
-	{
+	public MessageSensor(int value) {
 		this.value = value;
 	}
 	
-	public int getValue()
-	{
+	public int getValue() {
 		return value;
 	}
 }

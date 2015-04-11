@@ -16,8 +16,7 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 	double height;
 	IModule module;
 	
-	public GraphModule(IModule module)
-	{
+	public GraphModule(IModule module) {
 		super(module);
 		this.module = module;
 		readModule();
@@ -32,12 +31,9 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 		senderCells = new mxCell[messageSenders.length];
 		listenerCells = new mxCell[messageListeners.length];
 		
-		if(senderCells.length > listenerCells.length)
-		{
+		if(senderCells.length > listenerCells.length) {
 			height = senderCells.length*2*(2*PORT_RADIUS);
-		}
-		else
-		{
+		} else {
 			height = listenerCells.length*2*(2*PORT_RADIUS);
 		}
 		
@@ -48,7 +44,7 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 			mxGeometry geoSender = new mxGeometry(1, (double)x/messageSenders.length, PORT_RADIUS*2, PORT_RADIUS*2);
 			geoSender.setOffset(new mxPoint(-PORT_RADIUS, 0));
 			geoSender.setRelative(true);
-			senderCells[x] = new mxCell(messageSenders[x], geoSender, "shape=ellipse;perimter=ellipsePerimeter");
+			senderCells[x] = new Port(messageSenders[x], geoSender, module.getSenderLabel(x));
 			senderCells[x].setVertex(true);		
 			this.insert(senderCells[x]);
 		}
@@ -58,7 +54,7 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 			mxGeometry geoSender = new mxGeometry(0, (double)x/messageListeners.length, PORT_RADIUS*2, PORT_RADIUS*2);
 			geoSender.setOffset(new mxPoint(-PORT_RADIUS, 0));
 			geoSender.setRelative(true);
-			listenerCells[x] = new mxCell(messageListeners[x], geoSender, "shape=ellipse;perimter=ellipsePerimeter");
+			listenerCells[x] = new Port(messageListeners[x], geoSender, module.getListenerLabel(x));
 			listenerCells[x].setVertex(true);		
 			this.insert(listenerCells[x]);
 		}
@@ -93,6 +89,10 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 	public void updateView()
 	{
 		System.out.println("Module changed.");
+	}
+	
+	public String getLabel() {
+		return module.getLabel();
 	}
 
 	

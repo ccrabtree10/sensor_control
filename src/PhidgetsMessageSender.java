@@ -43,20 +43,18 @@ public class PhidgetsMessageSender implements IMessageSender, Serializable
 		exe = Executors.newCachedThreadPool();
 	}
 
-	public void addMessageListener(Object listener) throws ClassCastException
-	{
+	public void addMessageListener(Object listener) throws ClassCastException {
 		IMessageListenerSensor newListener = (IMessageListenerSensor) listener;
 		listeners.add(newListener);
 	}
 	
-	public synchronized void send(SensorChangeEvent sce) {
+	public void send(SensorChangeEvent sce) {
 		final MessageSensor message = new MessageSensor(sce.getValue());
 		Iterator<IMessageListenerSensor> iterator = listeners.iterator();
 		while(iterator.hasNext()) {
 			final IMessageListenerSensor listener = (IMessageListenerSensor) iterator.next();
 			exe.execute(new Runnable() { 
 				public void run() {
-					//su.log.log(su.f, "sending to converter");
 					listener.receive(message);
 				}
 			});
