@@ -105,15 +105,10 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 	public void addModule(IModule module) {
 		graph.getModel().beginUpdate();
 		try {
-			//graph.addCell(new GraphModule(module));
-			GraphModule gMod = new GraphModule(module);
-			gMod.setAttribute("label", "a label i just made up");
-			graph.addCell(gMod);
-		}
-		catch(Exception e) {
+			graph.addCell(new GraphModule(module));
+		} catch(Exception e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			graph.getModel().endUpdate();
 		}
 	}

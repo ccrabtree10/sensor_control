@@ -16,8 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
@@ -58,6 +60,7 @@ import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 import com.phidgets.PhidgetException;
 import com.thoughtworks.xstream.XStream;
+
 import java.util.logging.Logger;
 
 
@@ -73,17 +76,19 @@ public class MainFrame extends JFrame
 	
 	public MainFrame() 
 	{	
+		// !!! debug.
 		su.init();
 		Log.set(Log.LEVEL_DEBUG);
-		kryo = new Kryo();
-		kryo.register(GraphModule.class, new ModuleSerializer(kryo, GraphModule.class));
-		kryo.register(JComboBox.class, new JavaSerializer());
-		kryo.register(ControlPanel.class, new JavaSerializer());
-		kryo.register(JLabel.class, new JavaSerializer());
-		kryo.register(RangeSlider.class, new JavaSerializer());
 		
-		((DefaultInstantiatorStrategy) kryo.getInstantiatorStrategy()).setFallbackInstantiatorStrategy(new StdInstantiatorStrategy());
-		//kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+		kryo = new Kryo();
+		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+		DefaultInstantiatorStrategy strategy = new DefaultInstantiatorStrategy();
+		StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
+		strategy.setFallbackInstantiatorStrategy(stdStrategy);
+		kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
+		kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
+		kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
+		kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
 		
 		designerPanel = new DesignerPanel();
 		menubar = new JMenuBar();
@@ -163,62 +168,45 @@ public class MainFrame extends JFrame
 		});
 		
 		openSession.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae)
-			{
-				try 
-				{
-					Input input = new Input(new FileInputStream("/Users/Chris/" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
+			public void actionPerformed(ActionEvent ae) {
+				try  {
+					Input input = new Input(new FileInputStream("C:\\save_load\\" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
 					SessionContainer container = kryo.readObject(input, SessionContainer.class);
 					designerPanel.getGraph().addCells(container.getCells());
-				} 
-				catch (FileNotFoundException e) 
-				{
+				} catch (FileNotFoundException e) {
 					e.printStackTrace();
-				} 
-				catch (IOException e) 
-				{
+				} catch (IOException e) {
 					e.printStackTrace();
 				} 
 			}
 		});
 		
 		saveSession.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae)
-			{
-				try
-				{
+			public void actionPerformed(ActionEvent ae){
+				try {
 					Object[] cells = designerPanel.getGraph().getChildCells(designerPanel.getGraph().getDefaultParent());
 					SessionContainer container = new SessionContainer();
-					container.setCells(cells);
-					System.out.println(Arrays.toString(cells));
-					
-					Output output = new Output(new FileOutputStream("/Users/Chris/" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
+					container.setCells(cells);					
+					Output output = new Output(new FileOutputStream("C:\\save_load\\" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
 					kryo.writeObject(output, container);
 					output.flush();
 					output.close();
-				}
-				catch (IOException ioe)
-				{
+				} catch (IOException ioe) {
 					ioe.printStackTrace();
 				}
 			}
 		});
 		
 		testSession.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e)
-			{
+			public void actionPerformed(ActionEvent e) {
 				designerPanel.setupTestSession();
 			}
-		});
-		
-		
+		});		
 	}
 	
-	public static void main(String[] args) throws PhidgetException
-	{
+	public static void main(String[] args) throws PhidgetException {
 		SwingUtilities.invokeLater(new Runnable() {
-			public void run()
-			{
+			public void run() {
 				MainFrame frame = new MainFrame();
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				frame.setSize(800, 320);
@@ -226,7 +214,6 @@ public class MainFrame extends JFrame
 				
 			}
 		});
-		
 	}
 
 }

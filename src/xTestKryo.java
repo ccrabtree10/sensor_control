@@ -9,16 +9,22 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.ArrayList;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import org.objenesis.strategy.SerializingInstantiatorStrategy;
@@ -44,19 +50,19 @@ public class xTestKryo {
 	public static Logger JLOG;
 	
 	public static void main(String args[]) {
-		//xTestKryo x = new xTestKryo();
-		//xTestContainer obToSave = new xTestContainer();
-		TeVirtualMIDI port = new TeVirtualMIDI("testport");
+		xTestKryo x = new xTestKryo();
+		xTestContainer obToSave = new xTestContainer();
+		//TeVirtualMIDI port = new TeVirtualMIDI("testport");
 		
-		//x.log("saving with kryo");
-		//x.saveWithKryo(obToSave);
+		x.log("saving with kryo");
+		x.saveWithKryo(obToSave);
 		//x.log("saving with javaS");
 		//x.saveWithJavaS(obToSave);
 		
 		
 		
-		//x.log("loading with kryo");
-		//x.loadWithKryo();
+		x.log("loading with kryo");
+		x.loadWithKryo();
 		//x.log("loading with javaS");
 		//x.loadWithJavaS();
 		
@@ -84,15 +90,25 @@ public class xTestKryo {
 	}
 	
 	public xTestKryo() {
-		//Log.set(Log.LEVEL_DEBUG);
+		Log.set(Log.LEVEL_DEBUG);
 		//Log.set(Log.LEVEL_TRACE);
 		kryo = new Kryo(); 
 		// Set general strategy.
 		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+		
+		
 		//kryo.setInstantiatorStrategy(new SerializingInstantiatorStrategy());
-		//DefaultInstantiatorStrategy strategy = new DefaultInstantiatorStrategy();
-		//strategy.setFallbackInstantiatorStrategy(new StdInstantiatorStrategy());
-		//kryo.setInstantiatorStrategy(strategy);
+		DefaultInstantiatorStrategy strategy = new DefaultInstantiatorStrategy();
+		StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
+		strategy.setFallbackInstantiatorStrategy(stdStrategy);
+		kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
+		kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
+		kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
+		kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
+		//kryo.getRegistration(DefaultComboBoxModel.class).setInstantiator(strategy.newInstantiatorOf(DefaultComboBoxModel.class));
+		//kryo.getRegistration(JComboBox.class).setInstantiator(strategy.newInstantiatorOf(JComboBox.class));
+		
+		
 		
 		// Set individual strategy for classes - java strategy - no constructor.
 		//SerializingInstantiatorStrategy strategy = new SerializingInstantiatorStrategy();
@@ -187,7 +203,7 @@ public class xTestKryo {
 		Input input = null;
 		try {
 			input = new Input(new FileInputStream(kryoPath));
-			xTestContainer con = (xTestContainer) kryo.readObject(input, xTestContainer.class);
+			xTestContainer con = kryo.readObject(input, xTestContainer.class);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			try {

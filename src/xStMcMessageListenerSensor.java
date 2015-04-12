@@ -11,7 +11,7 @@ import javax.sound.midi.ShortMessage;
 public class xStMcMessageListenerSensor implements IMessageListenerSensor
 {
 	ArrayList<IMessageListenerMidi> midiListeners;
-	StMcIConverter currentConverter;
+	//StMcIConverter currentConverter;
 	private ExecutorService exe;
 	
 	public xStMcMessageListenerSensor() {
@@ -23,10 +23,10 @@ public class xStMcMessageListenerSensor implements IMessageListenerSensor
 		this.midiListeners = midiListeners;
 	}
 	
-	public void setCurrentConverter(StMcIConverter currentConverter)
+	/*public void setCurrentConverter(StMcIConverter currentConverter)
 	{
 		this.currentConverter = currentConverter;
-	}
+	}*/
 	
 	public synchronized void receive(MessageSensor message) {
 		// !!! Change this try catch to just set shortmessage, then test for null,

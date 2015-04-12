@@ -16,28 +16,30 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 import com.phidgets.event.SensorChangeEvent;
 
 
 
 
-public class StMcControllerConverter implements StMcIConverter
+public class StMcConverter
 {
-	JComboBox channelSelector, controllerSelector;
-	RangeSlider rangeControl, onOffSwitchControl;
-	JSlider thresholdControl;
+	private JComboBox channelSelector, controllerSelector;
+	private RangeSlider rangeControl, onOffSwitchControl;
+	private JSlider thresholdControl;
 	private JLabel channelLabel, controllerLabel, rangeLabel,
 		thresholdLabel, onOffSwitchLabel, modeLabel;
 	int channel, controller, rangeMin, rangeMax, onOffSwitchMin, onOffSwitchMax, conToSwitchThreshold;
 	private JComboBox<String> modeSelector;
 	private JPanel controlPanel, rowChannel, rowController, rowRange, rowThreshold, rowMode, rowOnOffSwitch;
-	// Could make all the methods into objects - then
-	// wouldn't need to use reflection!!!
 	private transient Method conversionMethod;
-	private final float CONVERSION_FACTOR = 0.127f;
+	private static final float CONVERSION_FACTOR = 0.127f;
 	
-	public StMcControllerConverter()
+	public StMcConverter()
 	{
 		Object[] tempChannelArray = new Object[16];
 		Object[] tempControllerArray = new Object[128];
@@ -98,64 +100,33 @@ public class StMcControllerConverter implements StMcIConverter
 		rangeMax = rangeControl.getHighValue();
 		
 		try {
-			conversionMethod = StMcControllerConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
+			conversionMethod = StMcConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
 		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-	}
-	
-	public JPanel getControlPanel()
-	{
-		return controlPanel;
-	}
-	
-	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException {
-		ShortMessage midiMessage = null;
-		try {
-			midiMessage = (ShortMessage) conversionMethod.invoke(this, message);
-		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		return midiMessage;
-	}
-	
-	public String toString()
-	{
-		return "Controller Change";
-	}
-	
-	public void initialize()
-	{
 		modeSelector.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae)
-			{
+			public void actionPerformed(ActionEvent ae) {
 				// Update view and set conversion method.
 				controlPanel.remove(rowRange);
 				controlPanel.remove(rowThreshold);
 				controlPanel.remove(rowOnOffSwitch);
-				try 
-				{
-					switch (modeSelector.getSelectedIndex())
-					{
+				try {
+					switch (modeSelector.getSelectedIndex()) {
 						case 0: controlPanel.add(rowRange);
-								conversionMethod = StMcControllerConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
+								conversionMethod = StMcConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
 								break;
 						case 1: controlPanel.add(rowOnOffSwitch);
-								conversionMethod = StMcControllerConverter.class.getDeclaredMethod("convertSwitch", MessageSensor.class);
+								conversionMethod = StMcConverter.class.getDeclaredMethod("convertSwitch", MessageSensor.class);
 								break;
 						case 2: controlPanel.add(rowThreshold);
-								conversionMethod = StMcControllerConverter.class.getDeclaredMethod("convertConToSwitch", MessageSensor.class);
+								conversionMethod = StMcConverter.class.getDeclaredMethod("convertConToSwitch", MessageSensor.class);
 								break;
 					}
 				} 
-				catch (NoSuchMethodException | SecurityException e) 
-				{
+				catch (NoSuchMethodException | SecurityException e) {
 					e.printStackTrace();
 				}
 				controlPanel.revalidate();
@@ -204,44 +175,60 @@ public class StMcControllerConverter implements StMcIConverter
 		onOffSwitchMin = onOffSwitchControl.getLowValue();
 		onOffSwitchMax = onOffSwitchControl.getHighValue();
 		conToSwitchThreshold = thresholdControl.getValue();
+		
 	}
 	
-	private ShortMessage convertContinuous(MessageSensor message) throws InvalidMidiDataException
-	{
+	public JPanel getControlPanel() {
+		return controlPanel;
+	}
+	
+	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException {
+		ShortMessage midiMessage = null;
+		try {
+			midiMessage = (ShortMessage) conversionMethod.invoke(this, message);
+		} catch (IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return midiMessage;
+	}
+	
+	private ShortMessage convertContinuous(MessageSensor message) throws InvalidMidiDataException {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		float ratio = (rangeMax - rangeMin)/127;
 		midiValue = Math.round((midiValue * ratio) + rangeMin);
 		return new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, controller, midiValue);
 	}
 	
-	private ShortMessage convertSwitch(MessageSensor message) throws InvalidMidiDataException
-	{
+	private ShortMessage convertSwitch(MessageSensor message) throws InvalidMidiDataException {
 		System.out.println("switch convert");
 		int midiValue;
-		if (message.getValue() < 100)
-		{
+		if (message.getValue() < 100) {
 			midiValue = onOffSwitchMin;
-		}
-		else
-		{
+		} else {
 			midiValue = onOffSwitchMax;
 		}
 		return new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, controller, midiValue);
 	}
 	
-	private ShortMessage convertConToSwitch(MessageSensor message) throws InvalidMidiDataException
-	{
+	private ShortMessage convertConToSwitch(MessageSensor message) throws InvalidMidiDataException {
 		System.out.println("conToSwitch convert");
 		int midiValue;
-		if(message.getValue() < conToSwitchThreshold*10)
-		{
+		if(message.getValue() < conToSwitchThreshold*10) {
 			midiValue = 0;
-		}
-		else
-		{
+		} else {
 			midiValue = 127;
 		}
 		return new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, controller, midiValue);
+	}
+
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, channelSelector);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		channelSelector = kryo.readObject(input, JComboBox.class);
+		
 	}
 	
 }

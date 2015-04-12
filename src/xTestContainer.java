@@ -1,4 +1,5 @@
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
@@ -6,11 +7,15 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.mxgraph.model.mxCell;
+import com.mxgraph.model.mxGeometry;
 
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 
 public class xTestContainer implements Serializable {// , KryoSerializable { 
@@ -19,6 +24,13 @@ public class xTestContainer implements Serializable {// , KryoSerializable {
 	JButton abutton;
 	xTestBox abox;
 	HashMap<String, String> ahashmap;
+	StMcModule module;
+	GraphModule gmod;
+	mxCell cell;
+	Port port;
+	IMessageListenerSensor listener;
+	ArrayList<Object> arrayList;
+	DefaultComboBoxModel model;
 
 	public xTestContainer() {
 		log("cons");
@@ -28,6 +40,11 @@ public class xTestContainer implements Serializable {// , KryoSerializable {
 		abox = new xTestBox();
 		ahashmap = new HashMap<String, String>();
 		ahashmap.put("name", "chris");
+		gmod = new GraphModule(new StMcModule());
+		
+		arrayList = new ArrayList<Object>();
+		arrayList.add(port);
+		
 	}
 	
 	

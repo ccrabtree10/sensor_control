@@ -17,29 +17,25 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 import com.phidgets.event.SensorChangeEvent;
 
 
-public class PhidgetsMessageSender implements IMessageSender, Serializable
+public class PhidgetsMessageSender implements IMessageSender, KryoSerializable
 {
-	private int conToSwitchThreshold, switchToConOff, switchToConOn;
 	private ArrayList<IMessageListenerSensor> listeners;
-	private String index;
-	private JLabel sensorLabel, sensorTypeLabel, outputModeLabel;
-	private JComboBox<String> sensorType, outputMode;
-	private JSlider thresholdControl;
-	private RangeSlider onOffControl;
-	private JComponent[][] controls;
-	private ControlPanel controlPanel;
-	private ExecutorService exe;
+	private int index;
+	private transient ExecutorService exe;
 	
 	public static final int CON_TO_SWITCH_THRESH_DEF = 500, SWITCH_TO_CON_OFF_DEF = 200, SWITCH_TO_CON_ON_DEF = 800;
 	
-	public PhidgetsMessageSender(int index)
-	{
+	public PhidgetsMessageSender(int index) {
 		listeners = new ArrayList<IMessageListenerSensor>();
-		this.index = String.valueOf(index);
+		this.index = index;
 		exe = Executors.newCachedThreadPool();
 	}
 
@@ -61,12 +57,22 @@ public class PhidgetsMessageSender implements IMessageSender, Serializable
 		}
 	}
 	
-	public String toString()
-	{
-		return index;
+	public String toString() {
+		return String.valueOf(index);
 	}
 
 	public void removeMessageListener(Object listener) {
 		listeners.remove(listener);
+	}
+
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, listeners);
+		kryo.writeObject(output, index);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		listeners = kryo.readObject(input, ArrayList.class);
+		index = kryo.readObject(input, int.class);
+		exe = Executors.newCachedThreadPool();
 	}
 }

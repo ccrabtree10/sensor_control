@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.sound.midi.*;
 import javax.swing.BoxLayout;
@@ -21,88 +23,40 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 
-public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender
+public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender//, KryoSerializable
 {
 	private ArrayList<IMessageListenerMidi> midiListeners;
-	private transient JLabel commandLabel, moduleLabel;
-	private JComboBox<StMcIConverter> commandSelector;
-	private transient JPanel converterControlPanel;
-	private transient JPanel controlPanel;
+	private StMcConverter converter;
+	private transient ExecutorService exe;
 	
-	public StMcModule()
-	{	
+	public StMcModule() {	
 		midiListeners = new ArrayList<IMessageListenerMidi>();
-
-		commandSelector = new JComboBox<StMcIConverter>();
-		commandSelector.setModel(new DefaultComboBoxModel<StMcIConverter>());
-		commandSelector.addItem(new StMcControllerConverter());
-		commandSelector.addItem(new StmNoteConverter());		
-		initialize();
+		converter = new StMcConverter();
+		exe = Executors.newCachedThreadPool();
 	}
 
-	public Object[] getMessageSenders() 
-	{
+	public Object[] getMessageSenders() {
 		return new Object[]{this};
 	}
 
-	public Object[] getMessageListeners() 
-	{
+	public Object[] getMessageListeners() {
 		return new Object[]{this};
 	}
 
-	public String toString() 
-	{
-		return midiListeners.toString();
-	}
-
-	public JComponent getControlPanel()
-	{		
-		return controlPanel;
+	public JComponent getControlPanel() {		
+		return converter.getControlPanel();
 	}
 
 	public void delete() {
-		// TODO Auto-generated method stub
 		
 	}
 	
-	public void initialize()
-	{
-		moduleLabel = new JLabel("Sensor To MIDI Module");
-		commandLabel = new JLabel("Command: ");
-		
-		converterControlPanel = ((StMcIConverter) commandSelector.getSelectedItem()).getControlPanel();
-		
-		controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-		JPanel row1 = new JPanel();
-		JPanel row2 = new JPanel();
-		JPanel row3 = new JPanel();
-		row1.add(moduleLabel);
-		row3.add(commandLabel);
-		row3.add(commandSelector);
-		
-		controlPanel.add(row1);
-		controlPanel.add(row2);		
-		controlPanel.add(row3);
-		controlPanel.add(converterControlPanel);
-		controlPanel.validate();
-		controlPanel.repaint();
-		
-		commandSelector.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) 
-			{
-				System.out.println("remove me!!!");
-			}
-		});
-				
-		for(int x=0; x<commandSelector.getItemCount(); x++)
-		{
-			commandSelector.getItemAt(x).initialize();
-		}
-	}
-
 	public void setModuleChangeListener(IModuleChangeListener listener) {
 		
 	}
@@ -116,15 +70,12 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 	}
 
 	public String getLabel() {
-		return "FUCKING BULL";
+		return "S-to-MIDI-Con";
 	}
 
 	public void receive(MessageSensor message) {
-		System.out.println("receive");
-		// !!! Change this try catch to just set shortmessage, then test for null,
-		// or could just return in the exception handler.
-		/*try {
-			final ShortMessage midiMessage = currentConverter.generateMessage(message);
+		try {
+			final ShortMessage midiMessage = converter.generateMessage(message);
 			Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
 			while(iterator.hasNext()) {
 				final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
@@ -138,18 +89,26 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}
-		*/
+		
 	}
 
 	public void addMessageListener(Object listener) throws ClassCastException {
 		IMessageListenerMidi midiListener = (IMessageListenerMidi) listener;
 		midiListeners.add(midiListener);
-		
 	}
 
 	public void removeMessageListener(Object listener) {
 		midiListeners.remove(listener);
 	}
-	
-	
+
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, midiListeners);
+		kryo.writeObject(output, converter);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		midiListeners = kryo.readObject(input, ArrayList.class);
+		converter = kryo.readObject(input, StMcConverter.class);
+		exe = Executors.newCachedThreadPool();
+	}	
 }

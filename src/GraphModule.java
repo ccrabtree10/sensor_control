@@ -6,12 +6,11 @@ import com.mxgraph.model.mxGeometry;
 import com.mxgraph.util.mxPoint;
 
 
-public class GraphModule extends mxCell implements IModuleChangeListener
-{
-	transient Object[] messageSenders;
-	transient Object[] messageListeners;
-	transient mxCell[] senderCells;
-	transient mxCell[] listenerCells;
+public class GraphModule extends mxCell implements IModuleChangeListener {
+	Object[] messageSenders;
+	Object[] messageListeners;
+	mxCell[] senderCells;
+	mxCell[] listenerCells;
 	final double PORT_RADIUS = 5;
 	double height;
 	IModule module;
@@ -22,10 +21,13 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 		readModule();
 		module.setModuleChangeListener(this);
 		this.setVertex(true);
+		
+		
+		// !!! debug.
+		//this.children = null;
 	}
 	
-	private void readModule()
-	{
+	private void readModule() {
 		messageSenders = module.getMessageSenders();
 		messageListeners = module.getMessageListeners();
 		senderCells = new mxCell[messageSenders.length];
@@ -60,34 +62,23 @@ public class GraphModule extends mxCell implements IModuleChangeListener
 		}
 	}
 
-	public JComponent getControlPanel() 
-	{
+	public JComponent getControlPanel()  {
 		return module.getControlPanel();
 	}
 	
-	public mxCell[] getMessageSenderCells()
-	{
+	public mxCell[] getMessageSenderCells() {
 		return senderCells;
 	}
 	
-	public mxCell[] getMessageListenerCells()
-	{
+	public mxCell[] getMessageListenerCells() {
 		return listenerCells;
 	}
 	
-	public void delete()
-	{
+	public void delete() {
 		module.delete();
 	}
 	
-	public void initialize()
-	{
-		module.initialize();
-		readModule();
-	}
-	
-	public void updateView()
-	{
+	public void updateView() {
 		System.out.println("Module changed.");
 	}
 	

@@ -8,14 +8,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 
-public class InspectorPanel extends JPanel implements Serializable
-{
-	public InspectorPanel()
-	{
-	}
-	
-	public void viewControlPanel(JComponent controlPanel)
-	{
+public class InspectorPanel extends JPanel {
+	public void viewControlPanel(JComponent controlPanel) {
 		this.removeAll();
 		this.add(controlPanel);
 	}

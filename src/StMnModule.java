@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.sound.midi.*;
 import javax.swing.BoxLayout;
@@ -23,113 +25,104 @@ import javax.swing.JSlider;
 
 import com.jidesoft.swing.RangeSlider;
 
-public class StMnModule implements IModule
+public class StMnModule implements IModule, IMessageSender
 {
 	private ArrayList<IMessageListenerMidi> midiListeners;
 	private IMessageListenerSensor[] messageListeners;
-	private StMnListenerTrigger listenerTrigger;
-	private StMnListenerPitch listenerPitch;
-	private StMnListenerVelocity listenerVelocity;
-	private StMnMessageSender messageSender;
-	private StMnNoteConverter noteConverter;
-	private transient JLabel moduleLabel;
-	private transient JPanel converterControlPanel;
-	private transient JPanel controlPanel;
+	private String[] listenerLabels;
+	private StMnConverter converter;
+	private ExecutorService exe;
+
 	
-	public StMnModule()
-	{	
+	public StMnModule() {	
 		midiListeners = new ArrayList<IMessageListenerMidi>();
 		
 		messageListeners = new IMessageListenerSensor[3];
-		listenerTrigger = new StMnListenerTrigger();
-		listenerPitch = new StMnListenerPitch();
-		listenerVelocity = new StMnListenerVelocity();
-		noteConverter = new StMnNoteConverter();
+		messageListeners[0] = new IMessageListenerSensor() {
+			public synchronized void receive(MessageSensor message) {
+				try {
+					//final ShortMessage midiMessage = converter.generateMessage(message);
+					final ShortMessage midiMessage = new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 0, message.getValue());
+					Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
+					while(iterator.hasNext()) {
+						final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
+						exe.execute(new Runnable() {
+							public void run() {
+								midiListener.receive(midiMessage);
+							}
+						});
+					}
+				} catch (InvalidMidiDataException e) {
+					e.printStackTrace();
+				}
+			}
+		};
 		
-		messageListeners[0] = listenerTrigger;
-		messageListeners[1] = listenerPitch;
-		messageListeners[2] = listenerVelocity;
+		messageListeners[1] = new IMessageListenerSensor() {
+			public void receive(MessageSensor message) {
+				converter.setPitch(message);
+			}
+		};
 		
-		messageSender = new StMnMessageSender();
+		messageListeners[2] = new IMessageListenerSensor() {
+			public void receive(MessageSensor message) {
+				converter.setVelocity(message);
+			}
+		};
 		
-		initialize();
+		listenerLabels = new String[3];
+		listenerLabels[0] = "Trg";
+		listenerLabels[1] = "Pit";
+		listenerLabels[2] = "Vel";
+		
+		converter = new StMnConverter();
+		
+		exe = Executors.newCachedThreadPool();
 	}
 
-	public Object[] getMessageSenders() 
-	{
-		return new Object[]{messageSender};
+	public Object[] getMessageSenders() {
+		return new Object[]{this};
 	}
 
-	public Object[] getMessageListeners() 
-	{
+	public Object[] getMessageListeners() {
 		return messageListeners;
 	}
 
-	public String toString() 
-	{
+	public String toString() {
 		return midiListeners.toString();
 	}
 
-	public JComponent getControlPanel()
-	{		
-		return controlPanel;
+	public JComponent getControlPanel() {		
+		return converter.getControlPanel();
 	}
 
 	public void delete() {
-		// TODO Auto-generated method stub
 		
 	}
 	
-	public void initialize()
-	{
-		moduleLabel = new JLabel("Sensor To MIDI Note Module");
-		
-		
-		converterControlPanel = noteConverter.getControlPanel();
-		
-		controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-		JPanel row1 = new JPanel();
-		row1.add(moduleLabel);
-		
-		controlPanel.add(row1);		
-		controlPanel.add(converterControlPanel);
-		controlPanel.validate();
-		controlPanel.repaint();
-		
-		// Set all references etc.
-		listenerTrigger.setMidiListeners(midiListeners);
-		messageSender.setMidiListeners(midiListeners);
-		
-		listenerTrigger.setConverter(noteConverter);
-		listenerPitch.setConverter(noteConverter);
-		listenerVelocity.setConverter(noteConverter);
-		
-		// initialize needed here !!!
-	}
-
-	@Override
 	public void setModuleChangeListener(IModuleChangeListener listener) {
-		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public String getListenerLabel(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		return listenerLabels[index];
 	}
 
-	@Override
 	public String getSenderLabel(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		return "Out";
 	}
 
-	@Override
 	public String getLabel() {
-		// TODO Auto-generated method stub
-		return null;
+		return "S-to-MIDI-Note";
+	}
+
+	public void addMessageListener(Object listener) throws ClassCastException {
+		IMessageListenerMidi midiListener = (IMessageListenerMidi) listener;
+		midiListeners.add(midiListener);	
+	}
+
+	public void removeMessageListener(Object listener) {
+		
 	}
 	
 }
