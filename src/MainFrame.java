@@ -1,6 +1,7 @@
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ContainerEvent;
@@ -33,6 +34,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.EventListenerList;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 
 import org.objenesis.strategy.InstantiatorStrategy;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -81,14 +84,28 @@ public class MainFrame extends JFrame
 		Log.set(Log.LEVEL_DEBUG);
 		
 		kryo = new Kryo();
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
 		DefaultInstantiatorStrategy strategy = new DefaultInstantiatorStrategy();
 		StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
 		strategy.setFallbackInstantiatorStrategy(stdStrategy);
+		kryo.setInstantiatorStrategy(stdStrategy);
+					
+		
+		kryo.getRegistration(JPanel.class).setInstantiator(strategy.newInstantiatorOf(JPanel.class));
 		kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
 		kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
 		kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
 		kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
+		kryo.getRegistration(EventListenerList.class).setInstantiator(strategy.newInstantiatorOf(EventListenerList.class));
+		
+		// Not sure about these.
+		//kryo.getRegistration(JComponent.class).setInstantiator(strategy.newInstantiatorOf(JComponent.class));
+		//kryo.getRegistration(Component.class).setInstantiator(strategy.newInstantiatorOf(Component.class));
+		//kryo.getRegistration(BasicComboBoxUI.class).setInstantiator(strategy.newInstantiatorOf(BasicComboBoxUI.class));
+		
+		kryo.getRegistration(JPanel.class).setSerializer(new JavaSerializer());
+		kryo.getRegistration(JComboBox.class).setSerializer(new JavaSerializer());
+		
+		
 		
 		designerPanel = new DesignerPanel();
 		menubar = new JMenuBar();

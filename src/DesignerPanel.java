@@ -28,7 +28,6 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 	public DesignerPanel() {
 		super(new mxGraph());
 		//this.setDragEnabled(false);
-		//graph = this.getGraph();
 		inspectorPanel = new InspectorPanel();
 		inspectorPanel.setPreferredSize(new Dimension(250, 0));
 		
@@ -88,8 +87,7 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 				}
 				catch (ClassCastException cce) {}
 				catch (NullPointerException npe) {}
-				finally
-				{
+				finally {
 					inspectorPanel.validate();
 					inspectorPanel.repaint();
 				}

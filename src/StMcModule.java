@@ -29,7 +29,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 
-public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender//, KryoSerializable
+public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender, KryoSerializable
 {
 	private ArrayList<IMessageListenerMidi> midiListeners;
 	private StMcConverter converter;
@@ -74,6 +74,7 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 	}
 
 	public void receive(MessageSensor message) {
+		System.out.println("receive");
 		try {
 			final ShortMessage midiMessage = converter.generateMessage(message);
 			Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
@@ -109,6 +110,7 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 	public void read(Kryo kryo, Input input) {
 		midiListeners = kryo.readObject(input, ArrayList.class);
 		converter = kryo.readObject(input, StMcConverter.class);
+		converter.init();
 		exe = Executors.newCachedThreadPool();
 	}	
 }

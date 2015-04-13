@@ -1,7 +1,9 @@
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
@@ -44,10 +46,24 @@ public class xTestContainer implements Serializable {// , KryoSerializable {
 		
 		arrayList = new ArrayList<Object>();
 		arrayList.add(port);
-		
 	}
 	
-	
+	public void doSomething() {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				JFrame frame = new JFrame();
+				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				frame.setSize(800, 320);
+				frame.setVisible(true);
+				frame.add(gmod.getControlPanel());
+				//gmod.getControlPanel().validate();
+				//gmod.getControlPanel().repaint();
+				
+			}
+		});
+		
+		
+	}
 	
 	public void log(String message) {
 		System.out.println("container: " + message);

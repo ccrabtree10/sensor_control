@@ -26,6 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.objenesis.strategy.SerializingInstantiatorStrategy;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -59,14 +60,13 @@ public class xTestKryo {
 		//x.log("saving with javaS");
 		//x.saveWithJavaS(obToSave);
 		
-		
+		//obToSave.doSomething();
 		
 		x.log("loading with kryo");
 		x.loadWithKryo();
 		//x.log("loading with javaS");
 		//x.loadWithJavaS();
-		
-		
+				
 		/*Set<Thread> threads = Thread.getAllStackTraces().keySet();
 		Iterator it = threads.iterator();
 		while (it.hasNext()) {
@@ -124,7 +124,7 @@ public class xTestKryo {
 		//kryo.getRegistration(JLabel.class).setSerializer(new JavaSerializer());
 		//kryo.getRegistration(HashMap.class).setSerializer(new JavaSerializer());
 		//kryo.getRegistration(xTestContainer.class).setSerializer(new JavaSerializer());
-		
+		kryo.getRegistration(JPanel.class).setSerializer(new JavaSerializer());
 		
 		
 		// Logging
@@ -204,6 +204,7 @@ public class xTestKryo {
 		try {
 			input = new Input(new FileInputStream(kryoPath));
 			xTestContainer con = kryo.readObject(input, xTestContainer.class);
+			con.doSomething();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			try {

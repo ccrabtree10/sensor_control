@@ -26,8 +26,7 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 
-public class StMcConverter
-{
+public class StMcConverter {
 	private JComboBox channelSelector, controllerSelector;
 	private RangeSlider rangeControl, onOffSwitchControl;
 	private JSlider thresholdControl;
@@ -39,8 +38,7 @@ public class StMcConverter
 	private transient Method conversionMethod;
 	private static final float CONVERSION_FACTOR = 0.127f;
 	
-	public StMcConverter()
-	{
+	public StMcConverter() {
 		Object[] tempChannelArray = new Object[16];
 		Object[] tempControllerArray = new Object[128];
 		for(int x=0; x<tempChannelArray.length; x++)
@@ -99,6 +97,10 @@ public class StMcConverter
 		rangeMin = rangeControl.getLowValue();
 		rangeMax = rangeControl.getHighValue();
 		
+		onOffSwitchMin = onOffSwitchControl.getLowValue();
+		onOffSwitchMax = onOffSwitchControl.getHighValue();
+		conToSwitchThreshold = thresholdControl.getValue();
+		
 		try {
 			conversionMethod = StMcConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
 		} catch (NoSuchMethodException e) {
@@ -107,6 +109,10 @@ public class StMcConverter
 			e.printStackTrace();
 		}
 		
+		init();
+	}
+	
+	protected void init() {
 		modeSelector.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				// Update view and set conversion method.
@@ -143,7 +149,6 @@ public class StMcConverter
 		controllerSelector.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				controller = (int) controllerSelector.getSelectedItem();
-				System.out.println("control change");
 			}
 		});
 
@@ -164,17 +169,27 @@ public class StMcConverter
 		thresholdControl.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				conToSwitchThreshold = thresholdControl.getValue();
-				System.out.println(conToSwitchThreshold);
 			}
 		});
 		
-		channel = (int) channelSelector.getSelectedItem();
-		controller = (int) controllerSelector.getSelectedItem();
-		rangeMin = rangeControl.getLowValue();
-		rangeMax = rangeControl.getHighValue();
-		onOffSwitchMin = onOffSwitchControl.getLowValue();
-		onOffSwitchMax = onOffSwitchControl.getHighValue();
-		conToSwitchThreshold = thresholdControl.getValue();
+		try {
+			switch (modeSelector.getSelectedIndex()) {
+				case 0: controlPanel.add(rowRange);
+						conversionMethod = StMcConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
+						break;
+				case 1: controlPanel.add(rowOnOffSwitch);
+						conversionMethod = StMcConverter.class.getDeclaredMethod("convertSwitch", MessageSensor.class);
+						break;
+				case 2: controlPanel.add(rowThreshold);
+						conversionMethod = StMcConverter.class.getDeclaredMethod("convertConToSwitch", MessageSensor.class);
+						break;
+			}
+		} 
+		catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("converter init");
 		
 	}
 	
@@ -221,14 +236,4 @@ public class StMcConverter
 		}
 		return new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, controller, midiValue);
 	}
-
-	public void write(Kryo kryo, Output output) {
-		kryo.writeObject(output, channelSelector);
-	}
-
-	public void read(Kryo kryo, Input input) {
-		channelSelector = kryo.readObject(input, JComboBox.class);
-		
-	}
-	
 }

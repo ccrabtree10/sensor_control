@@ -51,6 +51,7 @@ public class PhidgetsMessageSender implements IMessageSender, KryoSerializable
 			final IMessageListenerSensor listener = (IMessageListenerSensor) iterator.next();
 			exe.execute(new Runnable() { 
 				public void run() {
+					System.out.println("sending");
 					listener.receive(message);
 				}
 			});
