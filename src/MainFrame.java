@@ -84,14 +84,14 @@ public class MainFrame extends JFrame
 		Log.set(Log.LEVEL_DEBUG);
 		
 		kryo = new Kryo();
-		DefaultInstantiatorStrategy strategy = new DefaultInstantiatorStrategy();
+		DefaultInstantiatorStrategy defStrategy = new DefaultInstantiatorStrategy();
 		StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
-		strategy.setFallbackInstantiatorStrategy(stdStrategy);
+		defStrategy.setFallbackInstantiatorStrategy(stdStrategy);
 		kryo.setInstantiatorStrategy(stdStrategy);
 					
 		
 		//kryo.getRegistration(JPanel.class).setInstantiator(strategy.newInstantiatorOf(JPanel.class));
-		kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
+		kryo.getRegistration(ArrayList.class).setInstantiator(defStrategy.newInstantiatorOf(ArrayList.class));
 		//kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
 		//kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
 		//kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));

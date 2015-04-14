@@ -13,10 +13,11 @@ import javax.swing.*;
 
 public class PhidgetsModule implements IModule, AttachListener, SensorChangeListener, KryoSerializable
 {
-	private transient InterfaceKitPhidget ikp;
 	private PhidgetsMessageSender[] messageSenders;
+	private Integer ikpSerial;
+	private transient InterfaceKitPhidget ikp;
 	private transient IModuleChangeListener moduleChangeListener;
-	private JPanel controlPanel;
+	private transient JPanel controlPanel;
 	private transient ExecutorService exe;
 	private transient ExecutorService[] exes;
 		
@@ -25,6 +26,7 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 		for (int x=0; x<8; x++) {
 			messageSenders[x] = new PhidgetsMessageSender(x);
 		}
+		ikpSerial = null;
 		init();
 	}	
 	
@@ -82,30 +84,41 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 	}
 	
 	private void init() throws PhidgetException {
+		// Create thread pools. These should not be serialised.
 		exes = new ExecutorService[8];
 		for (int x=0; x<exes.length; x++) {
 			exes[x] = Executors.newSingleThreadExecutor();
 		}
 		
 		controlPanel = new JPanel();
-		
 		ikp = new InterfaceKitPhidget();
-		ikp.open(117182);
+		
+		// If ikpSerial has already been saved (the session has been saved and loaded
+		// from disk, then open that particular serial, else just open any.
+		if (ikpSerial != null) {
+			ikp.open(ikpSerial);
+		} else {
+			ikp.openAny();
+		}
+		
 		ikp.waitForAttachment();
+		ikpSerial = ikp.getSerialNumber();
 		ikp.addAttachListener(this);
 		ikp.addSensorChangeListener(this);
 	}
 
 	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, ikpSerial);
 		kryo.writeObject(output, messageSenders);
 	}
 
 	public void read(Kryo kryo, Input input) {
+		ikpSerial = kryo.readObject(input, Integer.class);
 		messageSenders = kryo.readObject(input, PhidgetsMessageSender[].class);
 		try {
 			init();
 		} catch (PhidgetException e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "An unnknown error occurred during loading the Phidgets Module.");
 		}
 	}
 }

@@ -110,7 +110,6 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 	public void read(Kryo kryo, Input input) {
 		midiListeners = kryo.readObject(input, ArrayList.class);
 		converter = kryo.readObject(input, StMcConverter.class);
-		converter.init();
 		exe = Executors.newCachedThreadPool();
 	}	
 }

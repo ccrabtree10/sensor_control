@@ -26,64 +26,103 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 
-public class StMnConverter {
-	private transient RangeSlider rangePitch, rangeVelocity;
-	private transient JLabel pitchRangeLabel,velocityRangeLabel, triggerLabel;
-	private int rangePitchMin, rangePitchMax, rangeVelocityMin, rangeVelocityMax, pitch, velocity;
+public class StMnConverter implements KryoSerializable {
+	private int rangePitchLow, rangePitchHigh, rangeVelocityLow, rangeVelocityHigh, pitch, velocity, channel;
 	private float rangePitchRatio, rangeVelocityRatio;
-	private transient JPanel controlPanel, rowTrigger, rowPitch, rowVelocity;
+	private transient JPanel controlPanel;
 	private transient Method conversionMethod;
 	private static final float CONVERSION_FACTOR = 0.127f;
 	
 	public StMnConverter() {
-		Object[] tempChannelArray = new Object[16];
-		Object[] tempControllerArray = new Object[128];
+		rangePitchLow = 0;
+		rangePitchHigh = 127;
+		rangeVelocityLow = 0;
+		rangeVelocityHigh = 127;
+		pitch = 0;
+		velocity = 0;
+		channel = 0;
+		init();
+	}
+	
+	private void init() {
+		// Create temp arrays for channel and controller values.
+		Integer[] tempChannelArray = new Integer[16];
 		for(int x=0; x<tempChannelArray.length; x++) {
 			tempChannelArray[x] = x;
 		}
-		for(int x=0; x<tempControllerArray.length; x++) {
-			tempControllerArray[x] = x;
-		}
 		
-		pitchRangeLabel = new JLabel("Range: ");
-		velocityRangeLabel = new JLabel("Threshold: ");
-		triggerLabel = new JLabel("On/Off Values:");
-		
-		rangePitch = new RangeSlider(0, 127, 0, 127);
-		rangeVelocity = new RangeSlider(0, 127, 0, 127);		
-		
+		// Instantiate GUI components.
+		final RangeSlider rangePitch = new RangeSlider(0, 127, 0, 127);
+		final RangeSlider rangeVelocity = new RangeSlider(0, 127, 0, 127);		
 		controlPanel = new JPanel();
 		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+		final JPanel rowChannel = new JPanel();
+		final JPanel rowTrigger = new JPanel();
+		final JPanel rowPitch = new JPanel();
+		final JPanel rowVelocity = new JPanel();
+		final JComboBox<Integer> channelSelector = new JComboBox<Integer>(new DefaultComboBoxModel<Integer>(tempChannelArray));
 		
-		rowTrigger = new JPanel();
-		rowPitch = new JPanel();
-		rowVelocity = new JPanel();
-		
-		
-		rowTrigger.add(triggerLabel);
-		rowPitch.add(pitchRangeLabel);
+		// Build GUI control panel.
+		rowChannel.add(new JLabel("Channel"));
+		rowChannel.add(channelSelector);
+		rowTrigger.add(new JLabel("On/Off Values:"));
+		rowPitch.add(new JLabel("Range: "));
 		rowPitch.add(rangePitch);
-		rowVelocity.add(velocityRangeLabel);
+		rowVelocity.add(new JLabel("Threshold: "));
 		rowVelocity.add(rangeVelocity);
-		
+		controlPanel.add(rowChannel);
 		controlPanel.add(rowTrigger);
 		controlPanel.add(rowPitch);
 		controlPanel.add(rowVelocity);
 		
+		// Add listeners for GUI components.
 		rangePitch.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				rangePitchRatio = (rangePitch.getHighValue() - rangePitch.getLowValue())/127;
+				rangePitchLow = rangePitch.getLowValue();
+				rangePitchHigh = rangePitch.getHighValue();
+				rangePitchRatio = (rangePitchHigh - rangePitchLow)/127;
 			}
 		});
 		
 		rangeVelocity.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				rangeVelocityRatio = (rangeVelocity.getHighValue() - rangeVelocity.getLowValue())/127;
+				rangeVelocityLow = rangeVelocity.getLowValue();
+				rangeVelocityHigh = rangeVelocity.getHighValue();
+				rangeVelocityRatio = (rangeVelocityHigh - rangeVelocityLow)/127;
 			}
 		});
 		
-		rangePitchRatio = (rangePitch.getHighValue() - rangePitch.getLowValue())/127;
-		rangeVelocityRatio = (rangeVelocity.getHighValue() - rangeVelocity.getLowValue())/127;		
+		// Set GUI components selection.
+		rangePitch.setLowValue(rangePitchLow);
+		rangePitch.setHighValue(rangePitchHigh);
+		rangeVelocity.setLowValue(rangePitchLow);
+		rangeVelocity.setHighValue(rangePitchHigh);
+		channelSelector.setSelectedItem(channel);		
+	}
+	
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, rangePitchLow);
+		kryo.writeObject(output, rangePitchHigh);
+		kryo.writeObject(output, rangeVelocityLow);
+		kryo.writeObject(output, rangeVelocityHigh);
+		kryo.writeObject(output, pitch);
+		kryo.writeObject(output, velocity);
+		kryo.writeObject(output, channel);
+		kryo.writeObject(output, rangePitchRatio);
+		kryo.writeObject(output, rangeVelocityRatio);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		rangePitchLow = kryo.readObject(input, Integer.class);
+		rangePitchHigh = kryo.readObject(input, Integer.class);
+		rangeVelocityLow = kryo.readObject(input, Integer.class);
+		rangeVelocityHigh = kryo.readObject(input, Integer.class);
+		pitch = kryo.readObject(input, Integer.class);
+		velocity = kryo.readObject(input, Integer.class);
+		channel = kryo.readObject(input, Integer.class);
+		rangePitchRatio = kryo.readObject(input, Float.class);
+		rangeVelocityRatio = kryo.readObject(input, Float.class);		
+		init();
 	}
 	
 	public JPanel getControlPanel() {
@@ -96,13 +135,15 @@ public class StMnConverter {
 	
 	public void setPitch(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
-		pitch = Math.round((midiValue * rangePitchRatio) + rangePitch.getLowValue());
+		pitch = Math.round((midiValue * rangePitchRatio) + rangePitchLow);
 		System.out.println(pitch);
 	}
 	
 	public void setVelocity(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
-		velocity = Math.round((midiValue * rangeVelocityRatio) + rangeVelocity.getLowValue());
+		velocity = Math.round((midiValue * rangeVelocityRatio) + rangeVelocityLow);
 		System.out.println(velocity);
 	}
+
+	
 }	

@@ -23,61 +23,61 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 
-public class StMnModule implements IModule, IMessageSender
-{
+public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 	private ArrayList<IMessageListenerMidi> midiListeners;
-	private IMessageListenerSensor[] messageListeners;
 	private String[] listenerLabels;
+	private ListenerTrigger listenerTrigger;
+	private ListenerPitch listenerPitch;
+	private ListenerVelocity listenerVelocity;
 	private StMnConverter converter;
-	private ExecutorService exe;
 
-	
 	public StMnModule() {	
 		midiListeners = new ArrayList<IMessageListenerMidi>();
-		
-		messageListeners = new IMessageListenerSensor[3];
-		messageListeners[0] = new IMessageListenerSensor() {
-			public synchronized void receive(MessageSensor message) {
-				try {
-					//final ShortMessage midiMessage = converter.generateMessage(message);
-					final ShortMessage midiMessage = new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 0, message.getValue());
-					Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
-					while(iterator.hasNext()) {
-						final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
-						exe.execute(new Runnable() {
-							public void run() {
-								midiListener.receive(midiMessage);
-							}
-						});
-					}
-				} catch (InvalidMidiDataException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		
-		messageListeners[1] = new IMessageListenerSensor() {
-			public void receive(MessageSensor message) {
-				converter.setPitch(message);
-			}
-		};
-		
-		messageListeners[2] = new IMessageListenerSensor() {
-			public void receive(MessageSensor message) {
-				converter.setVelocity(message);
-			}
-		};
 		
 		listenerLabels = new String[3];
 		listenerLabels[0] = "Trg";
 		listenerLabels[1] = "Pit";
 		listenerLabels[2] = "Vel";
-		
+
+		listenerTrigger = new ListenerTrigger();
+		listenerPitch = new ListenerPitch();
+		listenerVelocity = new ListenerVelocity();
+		 
 		converter = new StMnConverter();
-		
-		exe = Executors.newCachedThreadPool();
+		init();
+	}
+	
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, midiListeners);
+		kryo.writeObject(output, listenerTrigger);
+		kryo.writeObject(output, listenerPitch);
+		kryo.writeObject(output, listenerVelocity);
+		kryo.writeObject(output, listenerLabels);
+		kryo.writeObject(output, converter);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		midiListeners = kryo.readObject(input, ArrayList.class);
+		listenerTrigger = kryo.readObject(input, ListenerTrigger.class);
+		listenerPitch = kryo.readObject(input, ListenerPitch.class);
+		listenerVelocity = kryo.readObject(input, ListenerVelocity.class);
+		listenerLabels = kryo.readObject(input, String[].class);
+		converter = kryo.readObject(input, StMnConverter.class);
+		init();
+	}
+	
+	private void init() {
+		listenerTrigger.setConverter(converter);
+		listenerTrigger.setMidiListeners(midiListeners);
+		listenerTrigger.init();
+		listenerPitch.setConverter(converter);
+		listenerVelocity.setConverter(converter);
 	}
 
 	public Object[] getMessageSenders() {
@@ -85,7 +85,7 @@ public class StMnModule implements IModule, IMessageSender
 	}
 
 	public Object[] getMessageListeners() {
-		return messageListeners;
+		return new Object[]{listenerTrigger, listenerPitch, listenerVelocity};
 	}
 
 	public String toString() {
@@ -122,7 +122,64 @@ public class StMnModule implements IModule, IMessageSender
 	}
 
 	public void removeMessageListener(Object listener) {
-		
+		midiListeners.remove(listener);		
 	}
+
+	private class ListenerTrigger implements IMessageListenerSensor {
+		private transient StMnConverter thisConverter;
+		private transient ArrayList<IMessageListenerMidi> thisMidiListeners;
+		private transient ExecutorService exe;
+		public synchronized void receive(MessageSensor message) {
+			try {
+				final ShortMessage midiMessage = thisConverter.generateMessage(message);
+				Iterator<IMessageListenerMidi> iterator = thisMidiListeners.iterator();
+				while(iterator.hasNext()) {
+					final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
+					exe.execute(new Runnable() {
+						public void run() {
+							midiListener.receive(midiMessage);
+						}
+					});
+				}
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		protected void init() {
+			exe = Executors.newCachedThreadPool();
+		}
+		
+		protected void setConverter(StMnConverter converter) {
+			this.thisConverter = converter;
+		}
+		
+		protected void setMidiListeners(ArrayList<IMessageListenerMidi> listeners) {
+			this.thisMidiListeners = listeners;
+		}
+	}
+	
+	private class ListenerPitch implements IMessageListenerSensor {
+		private transient StMnConverter thisConverter;
+		public void receive(MessageSensor message) {
+			thisConverter.setPitch(message);
+		}
+		
+		protected void setConverter(StMnConverter converter) {
+			this.thisConverter = converter;
+		}
+	}
+	
+	private class ListenerVelocity implements IMessageListenerSensor {
+		private transient StMnConverter thisConverter;
+		public void receive(MessageSensor message) {
+			thisConverter.setVelocity(message);
+		}
+		
+		protected void setConverter(StMnConverter converter) {
+			this.thisConverter = converter;
+		}
+	}
+	
 	
 }

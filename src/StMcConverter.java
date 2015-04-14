@@ -26,67 +26,94 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 
-public class StMcConverter {
-	private transient JComboBox channelSelector, controllerSelector;
-	private transient RangeSlider rangeControl, onOffSwitchControl;
-	private transient JSlider thresholdControl;
-	private transient JLabel channelLabel, controllerLabel, rangeLabel,
-		thresholdLabel, onOffSwitchLabel, modeLabel;
-	private int channel, controller, rangeMin, rangeMax, onOffSwitchMin, onOffSwitchMax, conToSwitchThreshold;
-	private transient JComboBox<String> modeSelector;
-	private transient JPanel controlPanel, rowChannel, rowController, rowRange, rowThreshold, rowMode, rowOnOffSwitch;
+public class StMcConverter implements KryoSerializable {
+	private int channel, controller, rangeMin, rangeMax, onOffSwitchMin, 
+		onOffSwitchMax, conToSwitchThreshold;
+	private String conMethodName;
+	private transient JPanel controlPanel;
 	private transient Method conversionMethod;
 	private static final float CONVERSION_FACTOR = 0.127f;
 	
 	public StMcConverter() {
 		// Set initial values.
-		
-		// Call init() - this creates GUI components and sets their values according to the stored values.
-		// Don't serialise any GUI components, just serialise their values and rebuild on deserialisation.
-		Object[] tempChannelArray = new Object[16];
-		Object[] tempControllerArray = new Object[128];
+		channel = 0;
+		controller = 0;
+		rangeMin = 0;
+		rangeMax = 127;
+		onOffSwitchMin = 0;
+		onOffSwitchMax = 127;
+		conToSwitchThreshold = 63;
+		conMethodName = "convertContinuous";
+		// Initialise GUI components etc.
+		init();
+	}
+
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, channel);
+		kryo.writeObject(output, controller);
+		kryo.writeObject(output, rangeMin);
+		kryo.writeObject(output, rangeMax);
+		kryo.writeObject(output, onOffSwitchMin);
+		kryo.writeObject(output, onOffSwitchMax);
+		kryo.writeObject(output, conToSwitchThreshold);
+		kryo.writeObject(output, conMethodName);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		channel = kryo.readObject(input, int.class);
+		controller = kryo.readObject(input, int.class);
+		rangeMin = kryo.readObject(input, int.class);
+		rangeMax = kryo.readObject(input, int.class);
+		onOffSwitchMin = kryo.readObject(input, int.class);
+		onOffSwitchMax =  kryo.readObject(input, int.class);
+		conToSwitchThreshold = kryo.readObject(input, int.class);
+		conMethodName = kryo.readObject(input, String.class);
+		init();
+	}
+	
+	private void init() {
+		// Make temp arrays to hold integer values.
+		Integer[] tempChannelArray = new Integer[16];
+		Integer[] tempControllerArray = new Integer[128];
 		for(int x=0; x<tempChannelArray.length; x++) {
 			tempChannelArray[x] = x;
 		}
 		for(int x=0; x<tempControllerArray.length; x++) {
 			tempControllerArray[x] = x;
 		}
-		modeLabel = new JLabel("Mode: ");
-		channelLabel = new JLabel("Channel ");
-		controllerLabel = new JLabel("Controller: ");
-		rangeLabel = new JLabel("Range: ");
-		thresholdLabel = new JLabel("Threshold: ");
-		onOffSwitchLabel = new JLabel("On/Off Values:");
-		channelSelector = new JComboBox(new DefaultComboBoxModel(tempChannelArray));
-		controllerSelector = new JComboBox(new DefaultComboBoxModel(tempControllerArray));
-		rangeControl = new RangeSlider(0, 127, 0, 127);
-		onOffSwitchControl = new RangeSlider(0, 127, 0, 127);
-		thresholdControl = new JSlider();
-		modeSelector = new JComboBox<String>(new DefaultComboBoxModel<String>());
+		
+		// Instantiate GUI components.
+		controlPanel = new JPanel();
+		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+		final JPanel rowMode = new JPanel();
+		final JPanel rowChannel = new JPanel();
+		final JPanel rowController = new JPanel();
+		final JPanel rowRange = new JPanel();
+		final JPanel rowThreshold = new JPanel();
+		final JPanel rowOnOffSwitch = new JPanel();
+		
+		final JComboBox<Integer> channelSelector = new JComboBox<Integer>(new DefaultComboBoxModel<Integer>(tempChannelArray));
+		final JComboBox<Integer> controllerSelector = new JComboBox<Integer>(new DefaultComboBoxModel<Integer>(tempControllerArray));
+		final RangeSlider rangeControl = new RangeSlider(0, 127, 0, 127);
+		final RangeSlider onOffSwitchControl = new RangeSlider(0, 127, 0, 127);
+		final JSlider thresholdControl = new JSlider();
+		
+		final JComboBox<String> modeSelector = new JComboBox<String>(new DefaultComboBoxModel<String>());
 		modeSelector.addItem("Continuous");
 		modeSelector.addItem("Switch");
 		modeSelector.addItem("Con > Swi");
 		
-		controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-		rowMode = new JPanel();
-		rowChannel = new JPanel();
-		rowController = new JPanel();
-		rowRange = new JPanel();
-		rowThreshold = new JPanel();
-		rowOnOffSwitch = new JPanel();
-		
-		rowMode.add(modeLabel);
+		rowMode.add(new JLabel("Mode: "));
 		rowMode.add(modeSelector);
-		rowChannel.add(channelLabel);
+		rowChannel.add(new JLabel("Channel "));
 		rowChannel.add(channelSelector);
-		rowController.add(controllerLabel);
+		rowController.add(new JLabel("Controller: "));
 		rowController.add(controllerSelector);
-		rowRange.add(rangeLabel);
+		rowRange.add(new JLabel("Range: "));
 		rowRange.add(rangeControl);
-		rowThreshold.add(thresholdLabel);
+		rowThreshold.add(new JLabel("Threshold: "));
 		rowThreshold.add(thresholdControl);
-		rowOnOffSwitch.add(onOffSwitchLabel);
+		rowOnOffSwitch.add(new JLabel("On/Off Values:"));
 		rowOnOffSwitch.add(onOffSwitchControl);
 				
 		controlPanel.add(rowMode);
@@ -94,27 +121,23 @@ public class StMcConverter {
 		controlPanel.add(rowController);
 		controlPanel.add(rowRange);
 		
-		channel = (int) channelSelector.getSelectedItem();
-		controller = (int) controllerSelector.getSelectedItem();
-		rangeMin = rangeControl.getLowValue();
-		rangeMax = rangeControl.getHighValue();
+		channelSelector.setSelectedItem(channel);
+		controllerSelector.setSelectedItem(controller);
+		rangeControl.setLowValue(rangeMin);
+		rangeControl.setHighValue(rangeMax);
 		
-		onOffSwitchMin = onOffSwitchControl.getLowValue();
-		onOffSwitchMax = onOffSwitchControl.getHighValue();
-		conToSwitchThreshold = thresholdControl.getValue();
+		onOffSwitchControl.setLowValue(onOffSwitchMin);
+		onOffSwitchControl.setHighValue(onOffSwitchMax);
+		thresholdControl.setValue(conToSwitchThreshold);
 		
 		try {
-			conversionMethod = StMcConverter.class.getDeclaredMethod("convertContinuous", MessageSensor.class);
+			conversionMethod = StMcConverter.class.getDeclaredMethod(conMethodName, MessageSensor.class);
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
 		
-		init();
-	}
-	
-	protected void init() {
 		modeSelector.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				// Update view and set conversion method.
@@ -189,10 +212,7 @@ public class StMcConverter {
 		} 
 		catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
-		}
-		
-		System.out.println("converter init");
-		
+		}		
 	}
 	
 	public JPanel getControlPanel() {

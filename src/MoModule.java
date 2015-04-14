@@ -7,71 +7,69 @@ import java.io.Serializable;
 import javax.sound.midi.ShortMessage;
 import javax.swing.JComponent;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 
-public class MoModule implements IModule
-{
-	private MoMessageListener listener;
+
+public class MoModule implements IModule, IMessageListenerMidi, KryoSerializable {
 	private transient TeVirtualMIDI midiPort;
 	private String name;
 	
-	public MoModule(String name)
-	{
+	public MoModule(String name) {
 		this.name = name;
-		listener = new MoMessageListener();
-		//midiPort = new TeVirtualMIDI(name);
-		listener.setMidiPort(midiPort);
+		midiPort = new TeVirtualMIDI(name);
 	}
 
-	public Object[] getMessageSenders() 
-	{
+	public Object[] getMessageSenders() {
 		return new Object[0];
 	}
 
-	public Object[] getMessageListeners() 
-	{
-		return new Object[]{listener};
+	public Object[] getMessageListeners() {
+		return new Object[]{this};
 	}
 	
-	public String toString()
-	{
+	public String toString() {
 		return name;
 	}
 
-	public JComponent getControlPanel() 
-	{
+	public JComponent getControlPanel() {
 		return null;
 	}
 
-	public void delete() 
-	{
+	public void delete() {
 		midiPort.shutdown();
 	}
 	
-	public void setModuleChangeListener(IModuleChangeListener listener) {
-		// TODO Auto-generated method stub
-		
+	public void setModuleChangeListener(IModuleChangeListener listener) {		
 	}
 
 	public void initialize() {
-		
 	}
 
-	@Override
 	public String getListenerLabel(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		return "In";
 	}
 
-	@Override
 	public String getSenderLabel(int index) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public String getLabel() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Midi-Out";
 	}
-	
+
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, name);
+	}
+
+	public void read(Kryo kryo, Input input) {
+		name = kryo.readObject(input, String.class);
+		midiPort = new TeVirtualMIDI(name);
+	}
+
+	public void receive(ShortMessage message) {
+		System.out.println("recieve message" + message.toString());
+	}
 }
