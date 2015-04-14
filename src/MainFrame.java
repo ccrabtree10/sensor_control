@@ -90,20 +90,20 @@ public class MainFrame extends JFrame
 		kryo.setInstantiatorStrategy(stdStrategy);
 					
 		
-		kryo.getRegistration(JPanel.class).setInstantiator(strategy.newInstantiatorOf(JPanel.class));
+		//kryo.getRegistration(JPanel.class).setInstantiator(strategy.newInstantiatorOf(JPanel.class));
 		kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
-		kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
-		kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
-		kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
-		kryo.getRegistration(EventListenerList.class).setInstantiator(strategy.newInstantiatorOf(EventListenerList.class));
+		//kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
+		//kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
+		//kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
+		//kryo.getRegistration(EventListenerList.class).setInstantiator(strategy.newInstantiatorOf(EventListenerList.class));
 		
 		// Not sure about these.
 		//kryo.getRegistration(JComponent.class).setInstantiator(strategy.newInstantiatorOf(JComponent.class));
 		//kryo.getRegistration(Component.class).setInstantiator(strategy.newInstantiatorOf(Component.class));
 		//kryo.getRegistration(BasicComboBoxUI.class).setInstantiator(strategy.newInstantiatorOf(BasicComboBoxUI.class));
 		
-		kryo.getRegistration(JPanel.class).setSerializer(new JavaSerializer());
-		kryo.getRegistration(JComboBox.class).setSerializer(new JavaSerializer());
+		//kryo.getRegistration(JPanel.class).setSerializer(new JavaSerializer());
+		//kryo.getRegistration(JComboBox.class).setSerializer(new JavaSerializer());
 		
 		
 		

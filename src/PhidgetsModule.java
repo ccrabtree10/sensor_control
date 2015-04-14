@@ -25,7 +25,6 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 		for (int x=0; x<8; x++) {
 			messageSenders[x] = new PhidgetsMessageSender(x);
 		}
-		controlPanel = new JPanel();
 		init();
 	}	
 	
@@ -88,6 +87,8 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 			exes[x] = Executors.newSingleThreadExecutor();
 		}
 		
+		controlPanel = new JPanel();
+		
 		ikp = new InterfaceKitPhidget();
 		ikp.open(117182);
 		ikp.waitForAttachment();
@@ -96,18 +97,15 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 	}
 
 	public void write(Kryo kryo, Output output) {
-		kryo.writeObject(output, controlPanel);
 		kryo.writeObject(output, messageSenders);
 	}
 
 	public void read(Kryo kryo, Input input) {
-		controlPanel = kryo.readObject(input, JPanel.class);
 		messageSenders = kryo.readObject(input, PhidgetsMessageSender[].class);
 		try {
 			init();
 		} catch (PhidgetException e) {
 			e.printStackTrace();
 		}
-		//System.out.println(controlPanel);
 	}
 }

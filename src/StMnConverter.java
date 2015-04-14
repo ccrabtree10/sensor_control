@@ -29,8 +29,8 @@ import com.phidgets.event.SensorChangeEvent;
 public class StMnConverter {
 	private transient RangeSlider rangePitch, rangeVelocity;
 	private transient JLabel pitchRangeLabel,velocityRangeLabel, triggerLabel;
-	private transient int rangePitchMin, rangePitchMax, rangeVelocityMin, rangeVelocityMax, pitch, velocity;
-	private transient float rangePitchRatio, rangeVelocityRatio;
+	private int rangePitchMin, rangePitchMax, rangeVelocityMin, rangeVelocityMax, pitch, velocity;
+	private float rangePitchRatio, rangeVelocityRatio;
 	private transient JPanel controlPanel, rowTrigger, rowPitch, rowVelocity;
 	private transient Method conversionMethod;
 	private static final float CONVERSION_FACTOR = 0.127f;
@@ -66,7 +66,6 @@ public class StMnConverter {
 		rowVelocity.add(velocityRangeLabel);
 		rowVelocity.add(rangeVelocity);
 		
-				
 		controlPanel.add(rowTrigger);
 		controlPanel.add(rowPitch);
 		controlPanel.add(rowVelocity);

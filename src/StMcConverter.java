@@ -27,26 +27,28 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 public class StMcConverter {
-	private JComboBox channelSelector, controllerSelector;
-	private RangeSlider rangeControl, onOffSwitchControl;
-	private JSlider thresholdControl;
-	private JLabel channelLabel, controllerLabel, rangeLabel,
+	private transient JComboBox channelSelector, controllerSelector;
+	private transient RangeSlider rangeControl, onOffSwitchControl;
+	private transient JSlider thresholdControl;
+	private transient JLabel channelLabel, controllerLabel, rangeLabel,
 		thresholdLabel, onOffSwitchLabel, modeLabel;
-	int channel, controller, rangeMin, rangeMax, onOffSwitchMin, onOffSwitchMax, conToSwitchThreshold;
-	private JComboBox<String> modeSelector;
-	private JPanel controlPanel, rowChannel, rowController, rowRange, rowThreshold, rowMode, rowOnOffSwitch;
+	private int channel, controller, rangeMin, rangeMax, onOffSwitchMin, onOffSwitchMax, conToSwitchThreshold;
+	private transient JComboBox<String> modeSelector;
+	private transient JPanel controlPanel, rowChannel, rowController, rowRange, rowThreshold, rowMode, rowOnOffSwitch;
 	private transient Method conversionMethod;
 	private static final float CONVERSION_FACTOR = 0.127f;
 	
 	public StMcConverter() {
+		// Set initial values.
+		
+		// Call init() - this creates GUI components and sets their values according to the stored values.
+		// Don't serialise any GUI components, just serialise their values and rebuild on deserialisation.
 		Object[] tempChannelArray = new Object[16];
 		Object[] tempControllerArray = new Object[128];
-		for(int x=0; x<tempChannelArray.length; x++)
-		{
+		for(int x=0; x<tempChannelArray.length; x++) {
 			tempChannelArray[x] = x;
 		}
-		for(int x=0; x<tempControllerArray.length; x++)
-		{
+		for(int x=0; x<tempControllerArray.length; x++) {
 			tempControllerArray[x] = x;
 		}
 		modeLabel = new JLabel("Mode: ");
