@@ -35,7 +35,6 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		graph = new ApplicationGraph();
 		this.setGraph(graph);
 		
-		
 		mxOrganicLayout layout = new mxOrganicLayout(graph);
 		Object parent = graph.getDefaultParent();
 

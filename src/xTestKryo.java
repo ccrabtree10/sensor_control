@@ -28,8 +28,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.objenesis.strategy.SerializingInstantiatorStrategy;
-import org.objenesis.strategy.StdInstantiatorStrategy;
+//import org.objenesis.strategy.SerializingInstantiatorStrategy;
+//import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Kryo.DefaultInstantiatorStrategy;
@@ -38,7 +38,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.DefaultArraySerializers;
 import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
-import com.esotericsoftware.minlog.Log;
+//import com.esotericsoftware.minlog.Log;
 
 public class xTestKryo {
 	
@@ -90,21 +90,21 @@ public class xTestKryo {
 	}
 	
 	public xTestKryo() {
-		Log.set(Log.LEVEL_DEBUG);
+		//Log.set(Log.LEVEL_DEBUG);
 		//Log.set(Log.LEVEL_TRACE);
 		kryo = new Kryo(); 
 		// Set general strategy.
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+		//kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
 		
 		
 		//kryo.setInstantiatorStrategy(new SerializingInstantiatorStrategy());
 		DefaultInstantiatorStrategy strategy = new DefaultInstantiatorStrategy();
-		StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
-		strategy.setFallbackInstantiatorStrategy(stdStrategy);
-		kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
-		kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
-		kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
-		kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
+		//StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
+		//strategy.setFallbackInstantiatorStrategy(stdStrategy);
+		//kryo.getRegistration(ArrayList.class).setInstantiator(strategy.newInstantiatorOf(ArrayList.class));
+		//kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
+		//kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
+		//kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
 		//kryo.getRegistration(DefaultComboBoxModel.class).setInstantiator(strategy.newInstantiatorOf(DefaultComboBoxModel.class));
 		//kryo.getRegistration(JComboBox.class).setInstantiator(strategy.newInstantiatorOf(JComboBox.class));
 		

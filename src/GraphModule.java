@@ -21,10 +21,7 @@ public class GraphModule extends mxCell implements IModuleChangeListener {
 		readModule();
 		module.setModuleChangeListener(this);
 		this.setVertex(true);
-		
-		
-		// !!! debug.
-		//this.children = null;
+		this.setConnectable(false);
 	}
 	
 	private void readModule() {

@@ -38,6 +38,7 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 	private StMnConverter converter;
 
 	public StMnModule() {	
+		su.log.fine("test");
 		midiListeners = new ArrayList<IMessageListenerMidi>();
 		
 		listenerLabels = new String[3];

@@ -23,9 +23,11 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -35,6 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 
 import org.objenesis.strategy.InstantiatorStrategy;
@@ -62,23 +65,19 @@ import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 import com.phidgets.PhidgetException;
-import com.thoughtworks.xstream.XStream;
 
 import java.util.logging.Logger;
 
 
-public class MainFrame extends JFrame
-{
+public class MainFrame extends JFrame {
 	DesignerPanel designerPanel;
-	
 	JMenuBar menubar;
 	JMenuItem insertStMcModule, insertStMnModule, insertMidiOutModule, insertPhidgetsModule, 
-				saveSession, openSession, testSession, insertMiModule;
+		insertMidiDemoModule, saveSession, openSession, testSession;
 	JMenu insertMenu, inputFolder, moduleFolder, outputFolder, fileMenu;
 	Kryo kryo;
 	
-	public MainFrame() 
-	{	
+	public MainFrame() {	
 		// !!! debug.
 		su.init();
 		Log.set(Log.LEVEL_DEBUG);
@@ -103,9 +102,7 @@ public class MainFrame extends JFrame
 		//kryo.getRegistration(BasicComboBoxUI.class).setInstantiator(strategy.newInstantiatorOf(BasicComboBoxUI.class));
 		
 		//kryo.getRegistration(JPanel.class).setSerializer(new JavaSerializer());
-		//kryo.getRegistration(JComboBox.class).setSerializer(new JavaSerializer());
-		
-		
+		//kryo.getRegistration(JComboBox.class).setSerializer(new JavaSerializer());		
 		
 		designerPanel = new DesignerPanel();
 		menubar = new JMenuBar();
@@ -113,7 +110,7 @@ public class MainFrame extends JFrame
 		insertStMnModule = new JMenuItem("Sensor To Midi Note");
 		insertMidiOutModule = new JMenuItem("Midi Output");
 		insertPhidgetsModule = new JMenuItem("Phidgets Input");
-		insertMiModule = new JMenuItem("Midi Input");
+		insertMidiDemoModule = new JMenuItem("Midi Demo Module");
 		saveSession = new JMenuItem("Save");
 		openSession = new JMenuItem("Open");
 		testSession = new JMenuItem("Test");
@@ -124,8 +121,8 @@ public class MainFrame extends JFrame
 		fileMenu = new JMenu("File");
 		
 		inputFolder.add(insertPhidgetsModule);
-		inputFolder.add(insertMiModule);
 		outputFolder.add(insertMidiOutModule);
+		outputFolder.add(insertMidiDemoModule);
 		moduleFolder.add(insertStMcModule);
 		moduleFolder.add(insertStMnModule);
 		insertMenu.add(inputFolder);
@@ -144,10 +141,7 @@ public class MainFrame extends JFrame
 		this.add(designerPanel.getInspectorPanel(), BorderLayout.EAST);
 		
 		designerPanel.setDragEnabled(false);
-		
-		// !!! debug - auto setup test session.
-		//designerPanel.setupTestSession();
-		
+				
 		insertPhidgetsModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -177,40 +171,72 @@ public class MainFrame extends JFrame
 			}
 		});
 		
-		insertMiModule.addActionListener(new ActionListener() {
+		insertMidiDemoModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String name = JOptionPane.showInputDialog("Enter input port name: ");
-				designerPanel.addModule(new MiModule(name));
+				try {
+					designerPanel.addModule(new MidiDemoModule());
+				} catch (MidiUnavailableException mue) {
+					JOptionPane.showMessageDialog(MainFrame.this, 
+							"Error occurred during module creation: " + mue.getMessage());
+				}
 			}
 		});
 		
 		openSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				try  {
-					Input input = new Input(new FileInputStream("C:\\save_load\\" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
-					SessionContainer container = kryo.readObject(input, SessionContainer.class);
-					designerPanel.getGraph().addCells(container.getCells());
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} 
+				JFileChooser chooser = new JFileChooser();
+			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+			        "Session files", "session");
+			    chooser.setFileFilter(filter);
+			    int returnVal = chooser.showOpenDialog(MainFrame.this);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			    	String filename = chooser.getSelectedFile().getAbsolutePath();
+			    	String extension = filename.substring(filename.lastIndexOf(".") + 1, filename.length());
+			    	if (extension.equals("session")) {
+				    	try  {
+							Input input = new Input(new FileInputStream(filename));
+							SessionContainer container = kryo.readObject(input, SessionContainer.class);
+							designerPanel.getGraph().addCells(container.getCells());
+						} catch (FileNotFoundException fnfe) {
+							JOptionPane.showMessageDialog(
+								MainFrame.this, "File could not be found: " + filename);
+						} catch (Exception e) {
+							JOptionPane.showMessageDialog(
+							MainFrame.this, "An unknown error occurred: " + e.getMessage());
+						}
+			    	} else {
+			    		JOptionPane.showMessageDialog(MainFrame.this, 
+			    				"Cannot open this type of file: must be a .session file.");
+			    	}
+			    }
 			}
 		});
 		
 		saveSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae){
-				try {
-					Object[] cells = designerPanel.getGraph().getChildCells(designerPanel.getGraph().getDefaultParent());
-					SessionContainer container = new SessionContainer();
-					container.setCells(cells);					
-					Output output = new Output(new FileOutputStream("C:\\save_load\\" + JOptionPane.showInputDialog("Enter Session name: ") + ".kry"));
-					kryo.writeObject(output, container);
-					output.flush();
-					output.close();
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-				}
+				JFileChooser chooser = new JFileChooser();
+			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+			        "Session files", "session");
+			    chooser.setFileFilter(filter);
+			    int returnVal = chooser.showSaveDialog(MainFrame.this);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			    	String filename = chooser.getSelectedFile().getAbsolutePath() + ".session";
+			    	try {
+						Object[] cells = designerPanel.getGraph().getChildCells(designerPanel.getGraph().getDefaultParent());
+						SessionContainer container = new SessionContainer();
+						container.setCells(cells);					
+						Output output = new Output(new FileOutputStream(filename));
+						kryo.writeObject(output, container);
+						output.flush();
+						output.close();
+			    	} catch (IOException ioe) {
+			    		JOptionPane.showMessageDialog(MainFrame.this, 
+								"A disk error occurred during saving the session: " + ioe.getMessage());
+					} catch (Exception e) {
+						JOptionPane.showMessageDialog(MainFrame.this, 
+								"An unknown error occurred during saving the session: " + e.getMessage());
+					}
+			    }
 			}
 		});
 		
@@ -218,7 +244,11 @@ public class MainFrame extends JFrame
 			public void actionPerformed(ActionEvent e) {
 				designerPanel.setupTestSession();
 			}
-		});		
+		});	
+		
+		// !!! debug - auto setup test session.
+		//designerPanel.setupTestSession();
+
 	}
 	
 	public static void main(String[] args) throws PhidgetException {
@@ -228,7 +258,6 @@ public class MainFrame extends JFrame
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				frame.setSize(800, 320);
 				frame.setVisible(true);
-				
 			}
 		});
 	}

@@ -12,11 +12,11 @@ public class su {
 	
 	public static void init() {
 		ConsoleHandler handler = new ConsoleHandler();
-		handler.setLevel(Level.ALL);
+		handler.setLevel(f);
 		handler.setFormatter(new ChrisFormat());
 		log = Logger.getLogger("general_log");
 		log.addHandler(handler);
-		log.setLevel(Level.FINEST);
+		log.setLevel(f);
 	}	
 	
 	private static class ChrisFormat extends SimpleFormatter {
