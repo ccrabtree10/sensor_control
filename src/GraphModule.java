@@ -43,7 +43,7 @@ public class GraphModule extends mxCell implements IModuleChangeListener {
 			mxGeometry geoSender = new mxGeometry(1, (double)x/messageSenders.length, PORT_RADIUS*2, PORT_RADIUS*2);
 			geoSender.setOffset(new mxPoint(-PORT_RADIUS, 0));
 			geoSender.setRelative(true);
-			senderCells[x] = new Port(messageSenders[x], geoSender, module.getSenderLabel(x));
+			senderCells[x] = new Port(messageSenders[x], geoSender, module.getSenderLabel(x), true);
 			senderCells[x].setVertex(true);		
 			this.insert(senderCells[x]);
 		}
@@ -53,7 +53,7 @@ public class GraphModule extends mxCell implements IModuleChangeListener {
 			mxGeometry geoSender = new mxGeometry(0, (double)x/messageListeners.length, PORT_RADIUS*2, PORT_RADIUS*2);
 			geoSender.setOffset(new mxPoint(-PORT_RADIUS, 0));
 			geoSender.setRelative(true);
-			listenerCells[x] = new Port(messageListeners[x], geoSender, module.getListenerLabel(x));
+			listenerCells[x] = new Port(messageListeners[x], geoSender, module.getListenerLabel(x), false);
 			listenerCells[x].setVertex(true);		
 			this.insert(listenerCells[x]);
 		}

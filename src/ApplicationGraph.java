@@ -1,7 +1,14 @@
+import com.mxgraph.model.mxCell;
 import com.mxgraph.view.mxGraph;
 
 
 public class ApplicationGraph extends mxGraph {
+	
+	public ApplicationGraph() {
+		super();
+		this.cellsDisconnectable = false;
+	}
+	
 	public String getLabel(Object cell) {
 		String label = null;
 		if (cell instanceof Port) {
@@ -11,4 +18,10 @@ public class ApplicationGraph extends mxGraph {
 		}
 		return label;
 	}
+	
+	public boolean isCellMovable(Object cell) {
+		return !((mxCell) cell).isEdge();
+	}
+	
+	
 }

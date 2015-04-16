@@ -27,45 +27,66 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 	InspectorPanel inspectorPanel;
 	
 	public DesignerPanel() {
-		super(new mxGraph());
-		//this.setDragEnabled(false);
+		super(new ApplicationGraph());		
 		inspectorPanel = new InspectorPanel();
 		inspectorPanel.setPreferredSize(new Dimension(250, 0));
-		graph = new ApplicationGraph();
-		this.setGraph(graph);
+		graph = this.getGraph();	
 		
-		//mxOrganicLayout layout = new mxOrganicLayout(graph);
-		//Object parent = graph.getDefaultParent();
-
+		// Make a connection between modules.
 		this.getConnectionHandler().addListener(mxEvent.CONNECT, new mxIEventListener() {
 			public void invoke(Object sender, mxEventObject evt) {
-				mxCell cell = (mxCell) evt.getProperty("cell");
-				try {
-					IMessageSender messageSender = (IMessageSender) cell.getSource().getValue();
-					Object messageListener = cell.getTarget().getValue();
-					messageSender.addMessageListener(messageListener);
-				} catch (ClassCastException cce) {
-					JOptionPane.showMessageDialog(null, "Ports Incompatible.");
-					graph.removeCells(new Object[]{cell});
+				mxCell wire = (mxCell) evt.getProperty("cell");
+				wire.setConnectable(false);
+				Port port = (Port) wire.getSource();
+				if (port.isOutput()) {
+					try {
+						IMessageSender messageSender = (IMessageSender) port.getValue();
+						Object messageListener = wire.getTarget().getValue();
+						messageSender.addMessageListener(messageListener);
+					} catch (ClassCastException cce) {
+						JOptionPane.showMessageDialog(null, "Ports Incompatible.");
+						graph.removeCells(new Object[]{wire});
+					} catch (NullPointerException npe) {
+						graph.removeCells(new Object[]{wire});
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, 
+						"Cannot connect to an output port.\nCan only connect from an output port to an input port.");
+					graph.removeCells(new Object[]{wire});
 				}
 			}
 		});
 		
+		// Delete a module or a wire.
 		this.addKeyListener(new KeyListener() {
-
 			public void keyPressed(KeyEvent ke) {
 				if(ke.getKeyCode() == KeyEvent.VK_DELETE) {
-					GraphModule graphModule = (GraphModule) graph.getSelectionCell();
-					mxCell[] listenerCells = graphModule.getMessageListenerCells();
-					for(int listener=0; listener<listenerCells.length; listener++) {
-						int edgeCount = listenerCells[listener].getEdgeCount();
-						for(int edge=0; edge<edgeCount; edge++) {
-							mxCell edgeCell = (mxCell) listenerCells[listener].getEdgeAt(edge);
-							IMessageSender sourceSender = (IMessageSender) edgeCell.getSource().getValue();
-							sourceSender.removeMessageListener(listenerCells[listener].getValue());
+					Object cell = graph.getSelectionCell();
+					// If the cell is a module.
+					if (cell instanceof GraphModule) {
+						GraphModule graphModule = (GraphModule) cell;
+						mxCell[] listenerCells = graphModule.getMessageListenerCells();
+						// For each listener cell.
+						for(int listener=0; listener<listenerCells.length; listener++) {
+							int edgeCount = listenerCells[listener].getEdgeCount();
+							// For each edge connected to cell.
+							for(int edge=0; edge<edgeCount; edge++) {
+								mxCell edgeCell = (mxCell) listenerCells[listener].getEdgeAt(edge);
+								// Get sender connected to edge.
+								IMessageSender sourceSender = (IMessageSender) edgeCell.getSource().getValue();
+								// Remove listener from senders listener list.
+								sourceSender.removeMessageListener(listenerCells[listener].getValue());
+							}
 						}
+						// Call delete do module can do any clean-up code it may have.
+						graphModule.delete();
+					// If the cell is a wire.
+					} else if (cell instanceof mxCell) {
+						mxCell mCell = (mxCell) cell;
+						IMessageSender sender = (IMessageSender) mCell.getSource().getValue();
+						sender.removeMessageListener(mCell.getTarget().getValue());
 					}
-					graphModule.delete();
+					// Remove the selected cells from the graph.
 					graph.removeCells();
 					DesignerPanel.this.validate();
 					DesignerPanel.this.repaint();
@@ -75,17 +96,18 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 			public void keyTyped(KeyEvent arg0) {}
 		});
 		
+		// Show control panel when module selected.
 		graph.getSelectionModel().addListener(mxEvent.CHANGE, new mxIEventListener() {
 			public void invoke(Object sender, mxEventObject evt) {
 				inspectorPanel.removeAll();
-				try
-				{
+				try {
 					GraphModule graphModule = (GraphModule) graph.getSelectionCell();
 					inspectorPanel.viewControlPanel(graphModule.getControlPanel());
-				}
-				catch (ClassCastException cce) {}
-				catch (NullPointerException npe) {}
-				finally {
+				} catch (ClassCastException cce) {
+					
+				} catch (NullPointerException npe) {
+					
+				} finally {
 					inspectorPanel.validate();
 					inspectorPanel.repaint();
 				}
@@ -93,8 +115,7 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		});
 	}
 	
-	public InspectorPanel getInspectorPanel()
-	{
+	public InspectorPanel getInspectorPanel() {
 		return inspectorPanel;
 	}
 	
@@ -103,7 +124,7 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		try {
 			graph.addCell(new GraphModule(module));
 		} catch(Exception e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "An unknown error occurred: " + e.getMessage());
 		} finally {
 			graph.getModel().endUpdate();
 		}

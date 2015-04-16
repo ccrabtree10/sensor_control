@@ -73,8 +73,9 @@ public class MainFrame extends JFrame {
 	DesignerPanel designerPanel;
 	JMenuBar menubar;
 	JMenuItem insertStMcModule, insertStMnModule, insertMidiOutModule, insertPhidgetsModule, 
-		insertMidiDemoModule, saveSession, openSession, testSession;
-	JMenu insertMenu, inputFolder, moduleFolder, outputFolder, fileMenu;
+		insertMidiDemoModule, insertSensorMonitor, insertMidiMonitor, saveSession, 
+		openSession, testSession;
+	JMenu insertMenu, inputFolder, converterFolder, outputFolder, fileMenu, monitorFolder;
 	Kryo kryo;
 	
 	public MainFrame() {	
@@ -82,28 +83,15 @@ public class MainFrame extends JFrame {
 		su.init();
 		Log.set(Log.LEVEL_DEBUG);
 		
+		// Setup Kryo serialization.
 		kryo = new Kryo();
 		DefaultInstantiatorStrategy defStrategy = new DefaultInstantiatorStrategy();
 		StdInstantiatorStrategy stdStrategy = new StdInstantiatorStrategy();
 		defStrategy.setFallbackInstantiatorStrategy(stdStrategy);
 		kryo.setInstantiatorStrategy(stdStrategy);
-					
+		kryo.getRegistration(ArrayList.class).setInstantiator(defStrategy.newInstantiatorOf(ArrayList.class));		
 		
-		//kryo.getRegistration(JPanel.class).setInstantiator(strategy.newInstantiatorOf(JPanel.class));
-		kryo.getRegistration(ArrayList.class).setInstantiator(defStrategy.newInstantiatorOf(ArrayList.class));
-		//kryo.getRegistration(HashMap.class).setInstantiator(strategy.newInstantiatorOf(HashMap.class));
-		//kryo.getRegistration(Vector.class).setInstantiator(strategy.newInstantiatorOf(Vector.class));
-		//kryo.getRegistration(Hashtable.class).setInstantiator(strategy.newInstantiatorOf(Hashtable.class));
-		//kryo.getRegistration(EventListenerList.class).setInstantiator(strategy.newInstantiatorOf(EventListenerList.class));
-		
-		// Not sure about these.
-		//kryo.getRegistration(JComponent.class).setInstantiator(strategy.newInstantiatorOf(JComponent.class));
-		//kryo.getRegistration(Component.class).setInstantiator(strategy.newInstantiatorOf(Component.class));
-		//kryo.getRegistration(BasicComboBoxUI.class).setInstantiator(strategy.newInstantiatorOf(BasicComboBoxUI.class));
-		
-		//kryo.getRegistration(JPanel.class).setSerializer(new JavaSerializer());
-		//kryo.getRegistration(JComboBox.class).setSerializer(new JavaSerializer());		
-		
+		// Setup GUI menus.
 		designerPanel = new DesignerPanel();
 		menubar = new JMenuBar();
 		insertStMcModule = new JMenuItem("Sensor To Midi CC");
@@ -111,23 +99,30 @@ public class MainFrame extends JFrame {
 		insertMidiOutModule = new JMenuItem("Midi Output");
 		insertPhidgetsModule = new JMenuItem("Phidgets Input");
 		insertMidiDemoModule = new JMenuItem("Midi Demo Module");
+		insertSensorMonitor = new JMenuItem("Sensor Monitor");
+		insertMidiMonitor = new JMenuItem("Midi Monitor");
 		saveSession = new JMenuItem("Save");
 		openSession = new JMenuItem("Open");
 		testSession = new JMenuItem("Test");
 		insertMenu = new JMenu("Insert");
 		inputFolder = new JMenu("Input");
 		outputFolder = new JMenu("Output");
-		moduleFolder = new JMenu("Module");
+		converterFolder = new JMenu("Converter");
+		monitorFolder = new JMenu("Monitor");
+		
 		fileMenu = new JMenu("File");
 		
 		inputFolder.add(insertPhidgetsModule);
 		outputFolder.add(insertMidiOutModule);
 		outputFolder.add(insertMidiDemoModule);
-		moduleFolder.add(insertStMcModule);
-		moduleFolder.add(insertStMnModule);
+		converterFolder.add(insertStMcModule);
+		converterFolder.add(insertStMnModule);
+		monitorFolder.add(insertSensorMonitor);
+		monitorFolder.add(insertMidiMonitor);
 		insertMenu.add(inputFolder);
 		insertMenu.add(outputFolder);
-		insertMenu.add(moduleFolder);
+		insertMenu.add(converterFolder);
+		insertMenu.add(monitorFolder);
 		fileMenu.add(openSession);
 		fileMenu.add(saveSession);
 		fileMenu.add(testSession);
@@ -177,8 +172,20 @@ public class MainFrame extends JFrame {
 					designerPanel.addModule(new MidiDemoModule());
 				} catch (MidiUnavailableException mue) {
 					JOptionPane.showMessageDialog(MainFrame.this, 
-							"Error occurred during module creation: " + mue.getMessage());
+						"Error occurred during module creation: " + mue.getMessage());
 				}
+			}
+		});
+		
+		insertSensorMonitor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				designerPanel.addModule(new SensorMonitorModule());
+			}
+		});
+		
+		insertMidiMonitor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				designerPanel.addModule(new MidiMonitorModule());
 			}
 		});
 		

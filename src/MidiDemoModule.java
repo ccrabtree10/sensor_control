@@ -1,4 +1,7 @@
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.sound.midi.Instrument;
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiDevice;
@@ -7,10 +10,13 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -22,6 +28,7 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 	private transient Synthesizer synth;
 	private transient Receiver rcvr;
 	private transient JPanel controlPanel;
+	private transient JButton resetButton;
 	private Integer instrument;
 	
 	
@@ -51,16 +58,40 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 		
 		// Setup GUI.
 		controlPanel = new JPanel();
+		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+		JPanel row1 = new JPanel();
+		JPanel row2 = new JPanel();
 		JLabel selectorLabel = new JLabel("Instrument: ");
+		resetButton = new JButton("Reset synth");
 		final JComboBox instrumentSelector = new JComboBox(new DefaultComboBoxModel());
 		
+		// Get list of instruments from instrument bank and add to JComboBox.
 		Instrument[] instruments = synth.getDefaultSoundbank().getInstruments();
 		for (int x = 0; x < instruments.length; x++ ) {
 			instrumentSelector.addItem(instruments[x].getName());
 		}
+		instrumentSelector.setSelectedIndex(instrument);
 		
-		controlPanel.add(selectorLabel);
-		controlPanel.add(instrumentSelector);
+		instrumentSelector.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				synth.getChannels()[0].programChange(instrumentSelector.getSelectedIndex());
+			}
+		});
+		
+		resetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				MidiChannel[] channels = synth.getChannels();
+				for (int channel = 0; channel < channels.length; channel++) {
+					channels[channel].allNotesOff();
+				}
+			}
+		});
+		
+		row1.add(selectorLabel);
+		row1.add(instrumentSelector);
+		row2.add(resetButton);
+		controlPanel.add(row1);
+		controlPanel.add(row2);
 	}
 
 	public Object[] getMessageSenders() {
@@ -96,22 +127,21 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 	}
 
 	public void receive(ShortMessage message) {
-		su.log.fine("D1: " + message.getData1());
-		su.log.fine("D2: " + message.getData2());
-		
 		rcvr.send(message, -1);
 	}
 
-	@Override
-	public void read(Kryo arg0, Input arg1) {
-		// TODO Auto-generated method stub
-		
+	public void read(Kryo kryo, Input input) {
+		instrument = kryo.readObject(input, Integer.class);
+		try {
+			init();
+		} catch (MidiUnavailableException e) {
+			JOptionPane.showMessageDialog(null, 
+					"An error occurred while this Midi Demo module was loading: \n" + e.getMessage());
+		}
 	}
 
-	@Override
-	public void write(Kryo arg0, Output arg1) {
-		// TODO Auto-generated method stub
-		
+	public void write(Kryo kryo, Output output) {
+		kryo.writeObject(output, instrument);
 	}
 			
 }
