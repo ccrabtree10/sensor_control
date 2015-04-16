@@ -1,136 +1,66 @@
 
-import javax.sound.midi.*;
+import javax.sound.midi.Instrument;
+import javax.sound.midi.MidiChannel;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Synthesizer;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-public class MidiDemoModule implements IModule, IMessageListenerMidi {
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+
+public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerializable {
 	private transient Synthesizer synth;
-	private transient MidiChannel[] mc;
 	private transient Receiver rcvr;
+	private transient JPanel controlPanel;
+	private Integer instrument;
+	
 	
 	public MidiDemoModule() throws MidiUnavailableException {
-		try {
-			getSystemInfo();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// Get array of info objects about midi devices currently in system.
-		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
-		
-		// Get device at deviceNumber - I know which number to put in from system info method above.
-		synth = (Synthesizer) MidiSystem.getMidiDevice(info[0]);
+		// Initial values.
+		instrument = 0;
+		init();
+	}
+	
+	private void init() throws MidiUnavailableException {
+		// Get system's default synthesiser.
+		synth = MidiSystem.getSynthesizer();
 		
 		// Open synth - tells synth to start up and accept MIDI and generate audio.
 		synth.open();
 		
-		// Unload and load soundbank - probably not needed.
+		// Unload and load soundbank - not always needed, but ensure the synth is
+		// properly initialised.
 		synth.unloadAllInstruments(synth.getDefaultSoundbank());
 		synth.loadAllInstruments(synth.getDefaultSoundbank());
 		
-		// Get array of MIDI channels
-		mc = synth.getChannels();
+		// Select an instrument on channel 1.
+		synth.getChannels()[0].programChange(instrument);
 		
-		// Display name of instrument(program) assigned to channel 0.
-		Instrument[] instruments = synth.getLoadedInstruments();
-		System.out.println(instruments[0].getName());
+		// Get a reference the the synth's receiver.
+		rcvr = synth.getReceiver();	
 		
-		// Change some values of midi channel 1.
-		mc[0].controlChange(0,0);
-		mc[0].programChange(1);
-		mc[0].controlChange(7, 100);
-		mc[0].controlChange(39, 100);
-				
-		rcvr = synth.getReceiver();
+		// Setup GUI.
+		controlPanel = new JPanel();
+		JLabel selectorLabel = new JLabel("Instrument: ");
+		final JComboBox instrumentSelector = new JComboBox(new DefaultComboBoxModel());
 		
-		
-		
-	}
-	
-	/*public static void main(String[] args) throws Exception {
-		MidiDemoModule midiTest = new MidiDemoModule();
-		midiTest.getSystemInfo();
-	}*/
-	
-	public void getSystemInfo() throws Exception {
-		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
-		System.out.println("Number of devices: "+info.length);
-		for (int x=0; x<info.length; x++) {
-			System.out.println("*** Device "+x+" ***");
-			System.out.println("    Name: "+info[x].getName());
-			System.out.println("    Vendor: "+info[x].getVendor());
-			System.out.println("    Version: "+info[x].getVersion());
-			System.out.println("    Description: "+info[x].getDescription());
-			System.out.println("    Class: "+info[x].getClass());
+		Instrument[] instruments = synth.getDefaultSoundbank().getInstruments();
+		for (int x = 0; x < instruments.length; x++ ) {
+			instrumentSelector.addItem(instruments[x].getName());
 		}
-	}
-	
-	public void playPiano(int deviceNumber) throws Exception {
-		// Get array of info objects about midi devices currently in system.
-		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
-		// Get device at deviceNumber - I know which number to put in from system info method above.
-		synth = (Synthesizer) MidiSystem.getMidiDevice(info[deviceNumber]);
-		// Open synth - tells synth to start up and accept MIDI and generate audio.
-		synth.open();
-		// Unload and load soundbank - probably not needed.
-		synth.unloadAllInstruments(synth.getDefaultSoundbank());
-		synth.loadAllInstruments(synth.getDefaultSoundbank());
-		// Get array of MIDI channels
-		mc = synth.getChannels();
 		
-		// Display name of instrument(program) assigned to channel 0.
-		Instrument[] instruments = synth.getLoadedInstruments();
-		System.out.println(instruments[0].getName());
-		
-		// Change some values of midi channel 1.
-		mc[0].controlChange(0,0);
-		mc[0].programChange(1);
-		mc[0].controlChange(7, 100);
-		mc[0].controlChange(39, 100);
-		
-		// Send note on/off commands to midi channel 1.
-		System.out.println("Playing...");
-		/*
-		mc[0].noteOn(50, 100);
-		Thread.sleep(5000);
-		mc[0].noteOff(50);
-		*/
-		
-		System.out.println("Channel 0 Program: "+mc[0].getProgram());
-		System.out.println("Channel 0 Volume: "+mc[0].getController(7));
-		Thread thread = new Thread(new Runnable(){
-			public void run()
-			{
-				for (int x=0; x<100; x++)
-				{
-					// Alternatively can send a midi message to synth's receiver.
-					ShortMessage myMsg = new ShortMessage();
-					// Start playing the note Middle C (60), 
-					// moderately loud (velocity = 93).
-					try 
-					{
-						myMsg.setMessage(ShortMessage.NOTE_ON, 0, 60, 93);
-						long timeStamp = -1;
-						Receiver rcvr = MidiDemoModule.this.synth.getReceiver();
-						//Receiver rcvr = synth.getReceiver();
-						rcvr.send(myMsg, timeStamp);
-						Thread.sleep(500);
-					} catch (Exception e) {}
-				}
-				
-				// Close synth to free up system resources.	
-				synth.close();
-				System.out.println("Closed.");
-			}
-		});
-		
-		thread.start();
-		
-	}
-	
-	public void playSound(ShortMessage message)
-	{
-		long timeStamp = -1;
-		rcvr.send(message, timeStamp);
+		controlPanel.add(selectorLabel);
+		controlPanel.add(instrumentSelector);
 	}
 
 	public Object[] getMessageSenders() {
@@ -142,7 +72,7 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi {
 	}
 
 	public JComponent getControlPanel() {
-		return null;
+		return controlPanel;
 	}
 
 	public void delete() {
@@ -170,6 +100,18 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi {
 		su.log.fine("D2: " + message.getData2());
 		
 		rcvr.send(message, -1);
+	}
+
+	@Override
+	public void read(Kryo arg0, Input arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void write(Kryo arg0, Output arg1) {
+		// TODO Auto-generated method stub
+		
 	}
 			
 }

@@ -247,7 +247,7 @@ public class MainFrame extends JFrame {
 		});	
 		
 		// !!! debug - auto setup test session.
-		//designerPanel.setupTestSession();
+		designerPanel.setupTestSession();
 
 	}
 	

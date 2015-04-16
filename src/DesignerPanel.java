@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.Serializable;
 
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -30,13 +31,11 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		//this.setDragEnabled(false);
 		inspectorPanel = new InspectorPanel();
 		inspectorPanel.setPreferredSize(new Dimension(250, 0));
-		
-		// !!! debug.
 		graph = new ApplicationGraph();
 		this.setGraph(graph);
 		
-		mxOrganicLayout layout = new mxOrganicLayout(graph);
-		Object parent = graph.getDefaultParent();
+		//mxOrganicLayout layout = new mxOrganicLayout(graph);
+		//Object parent = graph.getDefaultParent();
 
 		this.getConnectionHandler().addListener(mxEvent.CONNECT, new mxIEventListener() {
 			public void invoke(Object sender, mxEventObject evt) {
@@ -110,48 +109,46 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		}
 	}
 	
-	public void setupTestSession()
-	{
+	public void setupTestSession() {
 		graph.getModel().beginUpdate();
 		
-		try 
-		{
+		try {
 			GraphModule phiGraphMod = new GraphModule(new PhidgetsModule());
 			GraphModule stmGraphMod = new GraphModule(new StMnModule());
-			GraphModule stmGraphMod2 = new GraphModule(new StMnModule());
-			GraphModule moGraphMod = new GraphModule(new MoModule("test"));
+			GraphModule midiDemoGraphMod = new GraphModule(new MidiDemoModule());
 			
 			phiGraphMod.setGeometry(new mxGeometry(10, 10, 100, 150));
 			stmGraphMod.setGeometry(new mxGeometry(175, 10, 100, 50));
-			stmGraphMod2.setGeometry(new mxGeometry(175, 70, 100, 50));
-			moGraphMod.setGeometry(new mxGeometry(350, 10, 100, 150));
+			midiDemoGraphMod.setGeometry(new mxGeometry(350, 10, 100, 150));
 
 			IMessageSender phiSender1 = (IMessageSender) phiGraphMod.getMessageSenderCells()[0].getValue();
 			IMessageSender phiSender2 = (IMessageSender) phiGraphMod.getMessageSenderCells()[1].getValue();
-			IMessageSender stmSender = (IMessageSender) stmGraphMod.getMessageSenderCells()[0].getValue();
-			IMessageSender stm2Sender = (IMessageSender) stmGraphMod2.getMessageSenderCells()[0].getValue();
+			IMessageSender phiSender3 = (IMessageSender) phiGraphMod.getMessageSenderCells()[2].getValue();
+			IMessageSender stmSender1 = (IMessageSender) stmGraphMod.getMessageSenderCells()[0].getValue();
 			
 			Object stmListener1 = stmGraphMod.getMessageListenerCells()[0].getValue();
-			Object stm2Listener1 = stmGraphMod2.getMessageListenerCells()[0].getValue();
-			Object moListener = moGraphMod.getMessageListenerCells()[0].getValue();
+			Object stmListener2 = stmGraphMod.getMessageListenerCells()[1].getValue();
+			Object stmListener3 = stmGraphMod.getMessageListenerCells()[2].getValue();
+			Object midiDemoListener = midiDemoGraphMod.getMessageListenerCells()[0].getValue();
 			
 			phiSender1.addMessageListener(stmListener1);
-			phiSender2.addMessageListener(stm2Listener1);
+			phiSender2.addMessageListener(stmListener2);
+			phiSender3.addMessageListener(stmListener3);
 
-			stmSender.addMessageListener(moListener);
-			stm2Sender.addMessageListener(moListener);
+			stmSender1.addMessageListener(midiDemoListener);
 			
-			graph.addCells(new Object[]{phiGraphMod, stmGraphMod, stmGraphMod2, moGraphMod});
+			graph.addCells(new Object[]{phiGraphMod, stmGraphMod, midiDemoGraphMod});
 			graph.insertEdge(null, null, null, phiGraphMod.getMessageSenderCells()[0], stmGraphMod.getMessageListenerCells()[0]);
-			graph.insertEdge(null, null, null, phiGraphMod.getMessageSenderCells()[1], stmGraphMod2.getMessageListenerCells()[0]);
-			graph.insertEdge(null, null, null, stmGraphMod.getMessageSenderCells()[0], moGraphMod.getMessageListenerCells()[0]);
+			graph.insertEdge(null, null, null, phiGraphMod.getMessageSenderCells()[1], stmGraphMod.getMessageListenerCells()[1]);
+			graph.insertEdge(null, null, null, phiGraphMod.getMessageSenderCells()[2], stmGraphMod.getMessageListenerCells()[2]);
+			graph.insertEdge(null, null, null, stmGraphMod.getMessageSenderCells()[0], midiDemoGraphMod.getMessageListenerCells()[0]);
 		} 
-		catch (PhidgetException e) 
-		{
-			e.printStackTrace();
+		catch (PhidgetException pe) {
+			pe.printStackTrace();
+		} catch (MidiUnavailableException mue) {
+			mue.printStackTrace();
 		}
-		finally
-		{
+		finally {
 			graph.getModel().endUpdate();
 		}
 	}
