@@ -1,4 +1,5 @@
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
@@ -103,6 +104,12 @@ public class StMcConverter implements KryoSerializable {
 		modeSelector.addItem("Switch");
 		modeSelector.addItem("Con > Swi");
 		
+		// Size components.
+		rangeControl.setPreferredSize(new Dimension(150, 30));
+		onOffSwitchControl.setPreferredSize(new Dimension(150, 30));
+		thresholdControl.setPreferredSize(new Dimension(150, 30));
+		
+		// Build control panel.
 		rowMode.add(new JLabel("Mode: "));
 		rowMode.add(modeSelector);
 		rowChannel.add(new JLabel("Channel "));

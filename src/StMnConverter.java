@@ -1,4 +1,5 @@
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
@@ -61,6 +62,10 @@ public class StMnConverter implements KryoSerializable {
 		final JPanel rowPitch = new JPanel();
 		final JPanel rowVelocity = new JPanel();
 		final JComboBox<Integer> channelSelector = new JComboBox<Integer>(new DefaultComboBoxModel<Integer>(tempChannelArray));
+		
+		// Size components.
+		rangePitch.setPreferredSize(new Dimension(150, 30));
+		rangeVelocity.setPreferredSize(new Dimension(150, 30));
 		
 		// Build GUI control panel.
 		rowChannel.add(new JLabel("Channel"));
