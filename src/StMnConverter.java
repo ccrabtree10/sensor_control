@@ -141,13 +141,11 @@ public class StMnConverter implements KryoSerializable {
 	public void setPitch(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		pitch = Math.round((midiValue * rangePitchRatio) + rangePitchLow);
-		System.out.println(pitch);
 	}
 	
 	public void setVelocity(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		velocity = Math.round((midiValue * rangeVelocityRatio) + rangeVelocityLow);
-		System.out.println(velocity);
 	}
 
 	
