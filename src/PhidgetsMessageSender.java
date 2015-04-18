@@ -1,6 +1,9 @@
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,8 +28,7 @@ import com.jidesoft.swing.RangeSlider;
 import com.phidgets.event.SensorChangeEvent;
 
 
-public class PhidgetsMessageSender implements IMessageSender, KryoSerializable
-{
+public class PhidgetsMessageSender implements IMessageSender, KryoSerializable, Serializable {
 	private ArrayList<IMessageListenerSensor> listeners;
 	private int index;
 	private transient ExecutorService exe;
@@ -76,4 +78,17 @@ public class PhidgetsMessageSender implements IMessageSender, KryoSerializable
 		index = kryo.readObject(input, int.class);
 		exe = Executors.newCachedThreadPool();
 	}
+	
+	// Note: these methods are not used in the application, they were used in testing to compare 
+	// the speed of Java native serialization and Kryo serilaization.
+	private void writeObject(ObjectOutputStream output) throws IOException {
+		output.writeObject(listeners);
+		output.writeObject(index);
+	}
+	
+	private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+		listeners = (ArrayList) input.readObject();
+		index = (int) input.readObject();
+		exe = Executors.newCachedThreadPool();
+	}	
 }

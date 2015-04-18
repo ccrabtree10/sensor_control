@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 
-public class su {
+public class SimpleLog {
 
 	public static Logger log;
 	public static Level f = Level.FINEST;
@@ -13,13 +13,13 @@ public class su {
 	public static void init() {
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setLevel(f);
-		handler.setFormatter(new ChrisFormat());
+		handler.setFormatter(new SimpleFormat());
 		log = Logger.getLogger("general_log");
 		log.addHandler(handler);
 		log.setLevel(f);
 	}	
 	
-	private static class ChrisFormat extends SimpleFormatter {
+	private static class SimpleFormat extends SimpleFormatter {
 		public String format(LogRecord rec) {
 			StringBuffer b = new StringBuffer();
 			b.append(rec.getSourceClassName());

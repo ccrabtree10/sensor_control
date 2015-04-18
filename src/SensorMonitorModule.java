@@ -48,10 +48,6 @@ public class SensorMonitorModule implements IModule, IMessageListenerSensor, Kry
 		// Nothing to clear up.
 	}
 
-	public void setModuleChangeListener(IModuleChangeListener listener) {
-		
-	}
-
 	public String getListenerLabel(int index) {
 		return "In";
 	}

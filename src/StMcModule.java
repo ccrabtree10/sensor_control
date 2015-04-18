@@ -6,6 +6,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,8 +32,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 
-public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender, KryoSerializable
-{
+public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender, KryoSerializable, Serializable {
 	private ArrayList<IMessageListenerMidi> midiListeners;
 	private StMcConverter converter;
 	private transient ExecutorService exe;
@@ -56,10 +58,6 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 	public void delete() {
 		
 	}
-	
-	public void setModuleChangeListener(IModuleChangeListener listener) {
-		
-	}
 
 	public String getListenerLabel(int index) {
 		return "In";
@@ -74,7 +72,6 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 	}
 
 	public void receive(MessageSensor message) {
-		System.out.println("receive");
 		try {
 			final ShortMessage midiMessage = converter.generateMessage(message);
 			Iterator<IMessageListenerMidi> iterator = midiListeners.iterator();
@@ -82,7 +79,7 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 				final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
 				exe.execute(new Runnable() { 
 					public void run() {
-						su.log.log(su.f, "sending to midi out module");
+						//su.log.log(su.f, "sending to midi out module");
 						midiListener.receive(midiMessage);
 					}
 				});
@@ -111,5 +108,17 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 		midiListeners = kryo.readObject(input, ArrayList.class);
 		converter = kryo.readObject(input, StMcConverter.class);
 		exe = Executors.newCachedThreadPool();
-	}	
+	}
+	
+	// Note: these methods are not used in the application, they were used in testing to compare 
+	// the speed of Java native serialization and Kryo serilaization.
+	private void writeObject(ObjectOutputStream output) throws IOException {
+		output.writeObject(midiListeners);
+		output.writeObject(converter);
+	}
+	
+	private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+		midiListeners = (ArrayList<IMessageListenerMidi>) input.readObject();
+		converter = (StMcConverter) input.readObject();
+	}
 }

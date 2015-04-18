@@ -1,25 +1,36 @@
 
+import java.io.Serializable;
+
 import javax.swing.JComponent;
 
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.util.mxPoint;
 
-
-public class GraphModule extends mxCell implements IModuleChangeListener {
+/**
+ * This is a specialised mxCell. It handles the display of a module in the designer panel.
+ * It displays the listeners and senders of a module as ports on the left and right hand
+ * side of this component.  
+ * @author Christopher Crabtree
+ *
+ */
+public class GraphModule extends mxCell implements Serializable {
 	Object[] messageSenders;
 	Object[] messageListeners;
 	mxCell[] senderCells;
 	mxCell[] listenerCells;
-	final double PORT_RADIUS = 5;
+	final double PORT_RADIUS = 10565466;
 	double height;
 	IModule module;
 	
+	/**
+	 * Construct a GraphModule for the specified module.
+	 * @param module The module do display on screen.
+	 */
 	public GraphModule(IModule module) {
 		super(module);
 		this.module = module;
 		readModule();
-		module.setModuleChangeListener(this);
 		this.setVertex(true);
 		this.setConnectable(false);
 	}
@@ -59,26 +70,42 @@ public class GraphModule extends mxCell implements IModuleChangeListener {
 		}
 	}
 
+	/**
+	 * Get the control panel of the module.
+	 * @return controlPanel The control panel of the module.
+	 */
 	public JComponent getControlPanel()  {
 		return module.getControlPanel();
 	}
 	
+	/**
+	 * Get an array of cells representing the module's senders.
+	 * @return senderCells An array of cells representing the module's outputs.
+	 */
 	public mxCell[] getMessageSenderCells() {
 		return senderCells;
 	}
 	
+	/**
+	 * Get an array of cells representing the module's listeners.
+	 * @return listenerCells An array of cells representing the module's inputs.
+	 */
 	public mxCell[] getMessageListenerCells() {
 		return listenerCells;
 	}
 	
+	/**
+	 * Delete the module held by this GraphModule. Run any cleanup code that the module
+	 * contains.
+	 */
 	public void delete() {
 		module.delete();
 	}
 	
-	public void updateView() {
-		System.out.println("Module changed.");
-	}
-	
+	/**
+	 * Get the label of the contained module.
+	 * @return label The label for the contained module.
+	 */
 	public String getLabel() {
 		return module.getLabel();
 	}

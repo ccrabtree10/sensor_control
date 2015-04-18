@@ -1,6 +1,12 @@
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
 import javax.sound.midi.Instrument;
 import javax.sound.midi.MidiChannel;
@@ -24,7 +30,7 @@ import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerializable {
+public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerializable, Serializable {
 	private transient Synthesizer synth;
 	private transient Receiver rcvr;
 	private transient JPanel controlPanel;
@@ -35,7 +41,7 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 	public MidiDemoModule() throws MidiUnavailableException {
 		// Initial values.
 		instrument = 0;
-		init();
+		//init();
 	}
 	
 	private void init() throws MidiUnavailableException {
@@ -110,10 +116,6 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 		synth.close();
 	}
 
-	public void setModuleChangeListener(IModuleChangeListener listener) {
-		
-	}
-
 	public String getListenerLabel(int index) {
 		return "In";
 	}
@@ -132,16 +134,26 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 
 	public void read(Kryo kryo, Input input) {
 		instrument = kryo.readObject(input, Integer.class);
-		try {
+		/*try {
 			init();
 		} catch (MidiUnavailableException e) {
 			JOptionPane.showMessageDialog(null, 
 					"An error occurred while this Midi Demo module was loading: \n" + e.getMessage());
-		}
+		}*/
 	}
 
 	public void write(Kryo kryo, Output output) {
 		kryo.writeObject(output, instrument);
 	}
+	
+	// Note: these methods are not used in the application, they were used in testing to compare 
+	// the speed of Java native serialization and Kryo serilaization.
+	private void writeObject(ObjectOutputStream output) throws IOException {
+		output.writeObject(instrument);
+	}
+	
+	private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+		instrument = (int) input.readObject();
+	}	
 			
 }

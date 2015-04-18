@@ -41,9 +41,6 @@ public class MoModule implements IModule, IMessageListenerMidi, KryoSerializable
 	public void delete() {
 		midiPort.shutdown();
 	}
-	
-	public void setModuleChangeListener(IModuleChangeListener listener) {		
-	}
 
 	public void initialize() {
 	}

@@ -85,10 +85,6 @@ public class MidiMonitorModule implements IModule, IMessageListenerMidi, KryoSer
 		// Nothing to clean up.
 	}
 
-	public void setModuleChangeListener(IModuleChangeListener listener) {
-		
-	}
-
 	public String getListenerLabel(int index) {
 		return "In";
 	}

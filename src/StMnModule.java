@@ -17,11 +17,13 @@ import javax.sound.midi.*;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.text.DefaultEditorKit.InsertTabAction;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
@@ -36,9 +38,9 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 	private ListenerPitch listenerPitch;
 	private ListenerVelocity listenerVelocity;
 	private StMnConverter converter;
+	private static int NOTE_ON_THRESHOLD = 500;
 
 	public StMnModule() {	
-		su.log.fine("test");
 		midiListeners = new ArrayList<IMessageListenerMidi>();
 		
 		listenerLabels = new String[3];
@@ -50,7 +52,7 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 		listenerPitch = new ListenerPitch();
 		listenerVelocity = new ListenerVelocity();
 		 
-		converter = new StMnConverter();
+		converter = new StMnConverter();		
 		init();
 	}
 	
@@ -79,6 +81,22 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 		listenerTrigger.init();
 		listenerPitch.setConverter(converter);
 		listenerVelocity.setConverter(converter);
+		
+		
+		// Create checkbox for invert trigger control and add to control panel.
+		final JCheckBox invertTriggerBox = new JCheckBox();
+		invertTriggerBox.setSelected(listenerTrigger.invertTrigger);
+		invertTriggerBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				listenerTrigger.setInvertTrigger(invertTriggerBox.isSelected());
+			}
+		});
+		JPanel row = new JPanel();
+		row.add(new JLabel("Invert trigger: "));
+		row.add(invertTriggerBox);
+		converter.getControlPanel().add(row);
+		
+		
 	}
 
 	public Object[] getMessageSenders() {
@@ -98,10 +116,6 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 	}
 
 	public void delete() {
-		
-	}
-	
-	public void setModuleChangeListener(IModuleChangeListener listener) {
 		
 	}
 
@@ -130,20 +144,25 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 		private transient StMnConverter thisConverter;
 		private transient ArrayList<IMessageListenerMidi> thisMidiListeners;
 		private transient ExecutorService exe;
+		private boolean invertTrigger;
 		public synchronized void receive(MessageSensor message) {
-			try {
-				final ShortMessage midiMessage = thisConverter.generateMessage(message);
-				Iterator<IMessageListenerMidi> iterator = thisMidiListeners.iterator();
-				while(iterator.hasNext()) {
-					final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
-					exe.execute(new Runnable() {
-						public void run() {
-							midiListener.receive(midiMessage);
-						}
-					});
+			// Only send a note on message if the sensor is "on", that is, above the note on threshold.
+			// If invertTrigger is true, then the inverse is true.
+			if ((!invertTrigger && message.getValue() > NOTE_ON_THRESHOLD) || (invertTrigger && message.getValue() < NOTE_ON_THRESHOLD)) {
+				try {
+					final ShortMessage midiMessage = thisConverter.generateMessage(message);
+					Iterator<IMessageListenerMidi> iterator = thisMidiListeners.iterator();
+					while(iterator.hasNext()) {
+						final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
+						exe.execute(new Runnable() {
+							public void run() {
+								midiListener.receive(midiMessage);
+							}
+						});
+					}
+				} catch (InvalidMidiDataException e) {
+					e.printStackTrace();
 				}
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
 			}
 		}
 		
@@ -157,6 +176,10 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 		
 		protected void setMidiListeners(ArrayList<IMessageListenerMidi> listeners) {
 			this.thisMidiListeners = listeners;
+		}
+		
+		protected void setInvertTrigger(boolean invertTrigger) {
+			this.invertTrigger = invertTrigger;
 		}
 	}
 	

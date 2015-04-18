@@ -78,10 +78,9 @@ public class MainFrame extends JFrame {
 	JMenu insertMenu, inputFolder, converterFolder, outputFolder, fileMenu, monitorFolder;
 	Kryo kryo;
 	
-	public MainFrame() {	
-		// !!! debug.
-		su.init();
-		Log.set(Log.LEVEL_DEBUG);
+	public MainFrame() {
+		// Initialise log.
+		SimpleLog.init();
 		
 		// Setup Kryo serialization.
 		kryo = new Kryo();
@@ -252,10 +251,6 @@ public class MainFrame extends JFrame {
 				designerPanel.setupTestSession();
 			}
 		});	
-		
-		// !!! debug - auto setup test session.
-		//designerPanel.setupTestSession();
-
 	}
 	
 	public static void main(String[] args) throws PhidgetException {
@@ -263,7 +258,7 @@ public class MainFrame extends JFrame {
 			public void run() {
 				MainFrame frame = new MainFrame();
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				frame.setSize(800, 320);
+				frame.setSize(800, 500);
 				frame.setVisible(true);
 			}
 		});

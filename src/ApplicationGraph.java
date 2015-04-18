@@ -20,7 +20,9 @@ public class ApplicationGraph extends mxGraph {
 	}
 	
 	public boolean isCellMovable(Object cell) {
-		return !((mxCell) cell).isEdge();
+		// Only let the user move graph modules. Wires and ports should not be
+		// moveable.
+		return (cell instanceof GraphModule);
 	}
 	
 	

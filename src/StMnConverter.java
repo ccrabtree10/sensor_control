@@ -9,6 +9,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -54,7 +55,8 @@ public class StMnConverter implements KryoSerializable {
 		
 		// Instantiate GUI components.
 		final RangeSlider rangePitch = new RangeSlider(0, 127, 0, 127);
-		final RangeSlider rangeVelocity = new RangeSlider(0, 127, 0, 127);		
+		final RangeSlider rangeVelocity = new RangeSlider(0, 127, 0, 127);
+		
 		controlPanel = new JPanel();
 		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 		final JPanel rowChannel = new JPanel();
@@ -75,12 +77,20 @@ public class StMnConverter implements KryoSerializable {
 		rowPitch.add(rangePitch);
 		rowVelocity.add(new JLabel("Threshold: "));
 		rowVelocity.add(rangeVelocity);
+		
 		controlPanel.add(rowChannel);
 		controlPanel.add(rowTrigger);
 		controlPanel.add(rowPitch);
 		controlPanel.add(rowVelocity);
 		
 		// Add listeners for GUI components.
+		channelSelector.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				channel = channelSelector.getSelectedIndex();
+				System.out.println(channel);
+			}
+		});
+		
 		rangePitch.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				rangePitchLow = rangePitch.getLowValue();
@@ -102,7 +112,8 @@ public class StMnConverter implements KryoSerializable {
 		rangePitch.setHighValue(rangePitchHigh);
 		rangeVelocity.setLowValue(rangePitchLow);
 		rangeVelocity.setHighValue(rangePitchHigh);
-		channelSelector.setSelectedItem(channel);		
+		channelSelector.setSelectedItem(channel);
+		
 	}
 	
 	public void write(Kryo kryo, Output output) {
@@ -115,6 +126,7 @@ public class StMnConverter implements KryoSerializable {
 		kryo.writeObject(output, channel);
 		kryo.writeObject(output, rangePitchRatio);
 		kryo.writeObject(output, rangeVelocityRatio);
+		
 	}
 
 	public void read(Kryo kryo, Input input) {
@@ -126,7 +138,7 @@ public class StMnConverter implements KryoSerializable {
 		velocity = kryo.readObject(input, Integer.class);
 		channel = kryo.readObject(input, Integer.class);
 		rangePitchRatio = kryo.readObject(input, Float.class);
-		rangeVelocityRatio = kryo.readObject(input, Float.class);		
+		rangeVelocityRatio = kryo.readObject(input, Float.class);
 		init();
 	}
 	
@@ -135,19 +147,17 @@ public class StMnConverter implements KryoSerializable {
 	}
 	
 	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException {
-		return new ShortMessage(ShortMessage.NOTE_ON, 0, pitch, velocity);
+		return new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
 	}
 	
 	public void setPitch(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		pitch = Math.round((midiValue * rangePitchRatio) + rangePitchLow);
-		System.out.println(pitch);
 	}
 	
 	public void setVelocity(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		velocity = Math.round((midiValue * rangeVelocityRatio) + rangeVelocityLow);
-		System.out.println(velocity);
 	}
 
 	

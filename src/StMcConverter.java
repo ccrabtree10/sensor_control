@@ -2,8 +2,13 @@
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -27,7 +32,7 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 
-public class StMcConverter implements KryoSerializable {
+public class StMcConverter implements KryoSerializable, Serializable {
 	private int channel, controller, rangeMin, rangeMax, onOffSwitchMin, 
 		onOffSwitchMax, conToSwitchThreshold;
 	private String conMethodName;
@@ -265,4 +270,29 @@ public class StMcConverter implements KryoSerializable {
 		}
 		return new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, controller, midiValue);
 	}
+	
+	// Note: these methods are not used in the application, they were used in testing to compare 
+	// the speed of Java native serialization and Kryo serilaization.
+	private void writeObject(ObjectOutputStream output) throws IOException {
+		output.writeObject(channel);
+		output.writeObject(controller);
+		output.writeObject(rangeMin);
+		output.writeObject(rangeMax);
+		output.writeObject(onOffSwitchMin);
+		output.writeObject(onOffSwitchMax);
+		output.writeObject(conToSwitchThreshold);
+		output.writeObject(conMethodName);
+	}
+	
+	private void readObject(ObjectInputStream input) throws ClassNotFoundException, IOException {
+		channel = (int) input.readObject();
+		controller = (int) input.readObject();
+		rangeMin = (int) input.readObject();
+		rangeMax = (int) input.readObject();
+		onOffSwitchMin = (int) input.readObject();
+		onOffSwitchMax =  (int) input.readObject();
+		conToSwitchThreshold = (int) input.readObject();
+		conMethodName = (String) input.readObject();
+		init();
+	}	
 }

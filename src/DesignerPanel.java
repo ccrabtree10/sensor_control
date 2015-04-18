@@ -21,11 +21,19 @@ import com.mxgraph.view.mxGraph;
 import com.phidgets.PhidgetException;
 
 
-public class DesignerPanel extends mxGraphComponent implements Serializable
-{
+/**
+ * A specialised mxGraphComponent. Sets up listeners for mouse and key events which
+ * manipulate the contained modules.
+ * @author Christopher Crabtree
+ *
+ */
+public class DesignerPanel extends mxGraphComponent implements Serializable {
 	mxGraph graph;
 	InspectorPanel inspectorPanel;
 	
+	/**
+	 * Standard constructor.
+	 */
 	public DesignerPanel() {
 		super(new ApplicationGraph());		
 		inspectorPanel = new InspectorPanel();
@@ -115,10 +123,19 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		});
 	}
 	
+	/**
+	 * Get the inspector panel for this graph. The inspector panel is used to display
+	 * module controls.
+	 * @return inspectorPanel The inspector panel for this designer panel.
+	 */
 	public InspectorPanel getInspectorPanel() {
 		return inspectorPanel;
 	}
 	
+	/**
+	 * Add a module to the designer panel.
+	 * @param module The module to add to this designer panel.
+	 */
 	public void addModule(IModule module) {
 		graph.getModel().beginUpdate();
 		try {
@@ -130,6 +147,9 @@ public class DesignerPanel extends mxGraphComponent implements Serializable
 		}
 	}
 	
+	/**
+	 * Sets up an example session.
+	 */
 	public void setupTestSession() {
 		graph.getModel().beginUpdate();
 		
