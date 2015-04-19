@@ -118,6 +118,8 @@ public class PhidgetsModule implements IModule, AttachListener, SensorChangeList
 			exes[x] = Executors.newSingleThreadExecutor();
 		}
 		
+		controlPanel = new JPanel();
+		
 		ikp = new InterfaceKitPhidget();
 		
 		// If ikpSerial has already been saved (the session has been saved and loaded
