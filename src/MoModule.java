@@ -12,11 +12,21 @@ import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-
+/**
+ * Module which uses the TeVirtualMIDI library to send MIDI messages to external software.
+ * Note: This module uses the library teVirtualMIDI.dll along with its driver, therefore to 
+ * use it, these files must be installed. These can be installed by by installing the loopMIDI 
+ * software from Tobias Erichsen's website: http://www.tobias-erichsen.de/software/loopmidi.html
+ * @author Christopher Crabtree
+ */
 public class MoModule implements IModule, IMessageListenerMidi, KryoSerializable {
 	private transient TeVirtualMIDI midiPort;
 	private String name;
 	
+	/**
+	 * Construct a new virtual MIDI port with this name.
+	 * @param name The name of the virtual MIDI port to create.
+	 */
 	public MoModule(String name) {
 		this.name = name;
 		midiPort = new TeVirtualMIDI(name);
@@ -65,8 +75,11 @@ public class MoModule implements IModule, IMessageListenerMidi, KryoSerializable
 		name = kryo.readObject(input, String.class);
 		midiPort = new TeVirtualMIDI(name);
 	}
-
+	
+	/**
+	 * Receive this MIDI message and send to the module's virtual MIDI port.
+	 */
 	public void receive(ShortMessage message) {
-		System.out.println("recieve message" + message.toString());
+		midiPort.sendCommand(message.getMessage());
 	}
 }

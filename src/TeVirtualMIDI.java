@@ -1,7 +1,12 @@
 
 
 
-
+/**
+ * Loads a system library teVirtualMidi.dll and constructs a virtual MIDI port with the name
+ * given to the constructor.
+ * @author Tobias Erichsen
+ *
+ */
 public class TeVirtualMIDI {
 
 	/* default size of sysex-buffer */
@@ -17,7 +22,12 @@ public class TeVirtualMIDI {
         /* TE_VM_FLAGS_PARSE_RX - parse incoming data into single, valid MIDI-commands */
 	public static final int TE_VM_FLAGS_PARSE_RX = 1;
 
-
+	/**
+	 * Construct a virtual MIDI port with the given values.
+	 * @param portName The name of the MIDI port.
+	 * @param maxSysexLength The max length of a sysex message.
+	 * @param flags
+	 */
 	public TeVirtualMIDI( String portName, int maxSysexLength, int flags ) {
 
 		isOpen = false;
@@ -34,21 +44,30 @@ public class TeVirtualMIDI {
 
 	}
 
-
+	/**
+	 * Construct a virtual MIDI port with the given values.
+	 * @param portName The name of the MIDI port.
+	 * @param maxSysexLength The max length of a sysex message.
+	 */
 	public TeVirtualMIDI( String portName, int maxSysexLength ) {
 
 		this( portName, maxSysexLength, TE_VM_FLAGS_PARSE_RX );
 
 	}
 
-
+	/**
+	 * Construct a virtual MIDI port with the given values.
+	 * @param portName The name of the MIDI port.
+	 */
 	public TeVirtualMIDI( String portName ) {
 
 		this( portName, TE_VM_DEFAULT_SYSEX_SIZE, TE_VM_FLAGS_PARSE_RX );
 
 	}
 
-
+	/**
+	 * Close this port and release its system resources.
+	 */
 	public void shutdown( ) {
 
 		int error = nativePortShutdown( handle );
@@ -61,7 +80,10 @@ public class TeVirtualMIDI {
 
 	}
 
-
+	/**
+	 * Send this message to the virtual MIDI port.
+	 * @param command The array of bytes which make up the MIDI message.
+	 */
 	public void sendCommand( byte[] command ) {
 
 		if ( command.length == 0 ) {
@@ -80,7 +102,10 @@ public class TeVirtualMIDI {
 
 	}
 
-
+	/**
+	 * Receive a MIDI message from this virtual MIDI port.
+	 * @return The byte array which makes up the received MIDI message.
+	 */
 	public byte[] getCommand( ) {
 
 		getError = 0;

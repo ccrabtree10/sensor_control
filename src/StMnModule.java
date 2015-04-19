@@ -31,6 +31,15 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
 
+/**
+ * This module converts a sensor message to a MIDI note message. It has 3 inputs: a trigger input, a pitch 
+ * input and a velocity input. The trigger input triggers a MIDI note message to be generated. The 
+ * best result is usually achieved by connecting a switch sensor to this input. The pitch input controls 
+ * sets the pitch of the MIDI note being generated and the velocity input controls the velocity (volume) 
+ * of the MIDI note being generated.
+ * @author Christopher Crabtree
+ *
+ */
 public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 	private ArrayList<IMessageListenerMidi> midiListeners;
 	private String[] listenerLabels;
@@ -131,11 +140,19 @@ public class StMnModule implements IModule, IMessageSender, KryoSerializable {
 		return "S-to-MIDI-Note";
 	}
 
+	/**
+	 * Add the listener to the module's list of listeners.
+	 * @param listener The listener to add.
+	 */
 	public void addMessageListener(Object listener) throws ClassCastException {
 		IMessageListenerMidi midiListener = (IMessageListenerMidi) listener;
 		midiListeners.add(midiListener);	
 	}
 
+	/**
+	 * Remove the listener from this module's list of listeners.
+	 * @param listener The listener to remove.
+	 */
 	public void removeMessageListener(Object listener) {
 		midiListeners.remove(listener);		
 	}

@@ -68,13 +68,17 @@ import com.phidgets.PhidgetException;
 
 import java.util.logging.Logger;
 
-
+/**
+ * A specialised JFrame which is used to display the application.
+ * @author Christopher Crabtree
+ *
+ */
 public class MainFrame extends JFrame {
 	DesignerPanel designerPanel;
 	JMenuBar menubar;
 	JMenuItem insertStMcModule, insertStMnModule, insertMidiOutModule, insertPhidgetsModule, 
 		insertMidiDemoModule, insertSensorMonitor, insertMidiMonitor, saveSession, 
-		openSession, testSession;
+		openSession, closeSession, testSession;
 	JMenu insertMenu, inputFolder, converterFolder, outputFolder, fileMenu, monitorFolder;
 	Kryo kryo;
 	
@@ -100,8 +104,9 @@ public class MainFrame extends JFrame {
 		insertMidiDemoModule = new JMenuItem("Midi Demo Module");
 		insertSensorMonitor = new JMenuItem("Sensor Monitor");
 		insertMidiMonitor = new JMenuItem("Midi Monitor");
-		saveSession = new JMenuItem("Save");
-		openSession = new JMenuItem("Open");
+		saveSession = new JMenuItem("Save Session...");
+		openSession = new JMenuItem("Open Session...");
+		closeSession = new JMenuItem("Close Session");
 		testSession = new JMenuItem("Test");
 		insertMenu = new JMenu("Insert");
 		inputFolder = new JMenu("Input");
@@ -124,7 +129,8 @@ public class MainFrame extends JFrame {
 		insertMenu.add(monitorFolder);
 		fileMenu.add(openSession);
 		fileMenu.add(saveSession);
-		fileMenu.add(testSession);
+		fileMenu.add(closeSession);
+		//fileMenu.add(testSession);
 		menubar.add(fileMenu);
 		menubar.add(insertMenu);
 		
@@ -188,33 +194,47 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		closeSession.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				MainFrame.this.closeSession(
+						"Are you sure you want to close this session and start a new session?\nUnsaved data will be lost!");
+			}
+		});
+		
 		openSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				JFileChooser chooser = new JFileChooser();
-			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-			        "Session files", "session");
-			    chooser.setFileFilter(filter);
-			    int returnVal = chooser.showOpenDialog(MainFrame.this);
-			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			    	String filename = chooser.getSelectedFile().getAbsolutePath();
-			    	String extension = filename.substring(filename.lastIndexOf(".") + 1, filename.length());
-			    	if (extension.equals("session")) {
-				    	try  {
-							Input input = new Input(new FileInputStream(filename));
-							SessionContainer container = kryo.readObject(input, SessionContainer.class);
-							designerPanel.getGraph().addCells(container.getCells());
-						} catch (FileNotFoundException fnfe) {
-							JOptionPane.showMessageDialog(
-								MainFrame.this, "File could not be found: " + filename);
-						} catch (Exception e) {
-							JOptionPane.showMessageDialog(
-							MainFrame.this, "An unknown error occurred: " + e.getMessage());
-						}
-			    	} else {
-			    		JOptionPane.showMessageDialog(MainFrame.this, 
-			    				"Cannot open this type of file: must be a .session file.");
-			    	}
-			    }
+				// Check with the user that the definitely want to open a session.
+				boolean userConfirm = MainFrame.this.closeSession(
+						"Are you sure you want to close this session and open another?\nUnsaved data will be lost!");
+				if (userConfirm == true) {
+					JFileChooser chooser = new JFileChooser();
+				    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "Session files", "session");
+				    chooser.setFileFilter(filter);
+				    int returnVal = chooser.showOpenDialog(MainFrame.this);
+				    if(returnVal == JFileChooser.APPROVE_OPTION) {
+				    	String filename = chooser.getSelectedFile().getAbsolutePath();
+				    	String extension = filename.substring(filename.lastIndexOf(".") + 1, filename.length());
+				    	if (extension.equals("session")) {
+					    	try  {
+								Input input = new Input(new FileInputStream(filename));
+								SessionContainer container = kryo.readObject(input, SessionContainer.class);
+								designerPanel.getGraph().addCells(container.getCells());
+								designerPanel.validate();
+								JOptionPane.showMessageDialog(MainFrame.this, "Session successfully loaded");
+							} catch (FileNotFoundException fnfe) {
+								JOptionPane.showMessageDialog(
+									MainFrame.this, "File could not be found: " + filename);
+							} catch (Exception e) {
+								JOptionPane.showMessageDialog(
+								MainFrame.this, "An unknown error occurred: " + e.getMessage());
+							}
+				    	} else {
+				    		JOptionPane.showMessageDialog(MainFrame.this, 
+				    				"Cannot open this type of file: must be a .session file.");
+				    	}
+				    }
+				}
 			}
 		});
 		
@@ -235,6 +255,7 @@ public class MainFrame extends JFrame {
 						kryo.writeObject(output, container);
 						output.flush();
 						output.close();
+						JOptionPane.showMessageDialog(MainFrame.this, "Session succesfully saved.");
 			    	} catch (IOException ioe) {
 			    		JOptionPane.showMessageDialog(MainFrame.this, 
 								"A disk error occurred during saving the session: " + ioe.getMessage());
@@ -251,6 +272,26 @@ public class MainFrame extends JFrame {
 				designerPanel.setupTestSession();
 			}
 		});	
+	}
+	
+	private boolean closeSession(String message) {
+		int reply = JOptionPane.showConfirmDialog(MainFrame.this, 
+				message,
+				"Warning",
+				JOptionPane.YES_NO_OPTION);
+		if (reply == JOptionPane.YES_OPTION) {
+			Object[] cells = designerPanel.getGraph().getChildCells(designerPanel.getGraph().getDefaultParent());
+			for (Object cell : cells) {
+				if (cell instanceof GraphModule) {
+					((GraphModule) cell).delete();
+				}
+			}
+			designerPanel.getGraph().removeCells(cells);
+			designerPanel.validate();
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public static void main(String[] args) throws PhidgetException {

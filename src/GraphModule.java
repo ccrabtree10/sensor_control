@@ -1,6 +1,4 @@
 
-import java.io.Serializable;
-
 import javax.swing.JComponent;
 
 import com.mxgraph.model.mxCell;
@@ -14,18 +12,18 @@ import com.mxgraph.util.mxPoint;
  * @author Christopher Crabtree
  *
  */
-public class GraphModule extends mxCell implements Serializable {
+public class GraphModule extends mxCell {
 	Object[] messageSenders;
 	Object[] messageListeners;
 	mxCell[] senderCells;
 	mxCell[] listenerCells;
-	final double PORT_RADIUS = 10565466;
+	final double PORT_RADIUS = 5;
 	double height;
 	IModule module;
 	
 	/**
 	 * Construct a GraphModule for the specified module.
-	 * @param module The module do display on screen.
+	 * @param module The module to display on screen.
 	 */
 	public GraphModule(IModule module) {
 		super(module);

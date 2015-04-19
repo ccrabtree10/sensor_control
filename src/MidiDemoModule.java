@@ -29,8 +29,12 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-
-public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerializable, Serializable {
+/**
+ * Module which loads the systems default synthesiser. It has one input which accepts MIDI 
+ * messages (of type ShortMessage).
+ * @author Christopher Crabtree
+ */
+public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerializable {
 	private transient Synthesizer synth;
 	private transient Receiver rcvr;
 	private transient JPanel controlPanel;
@@ -41,7 +45,7 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 	public MidiDemoModule() throws MidiUnavailableException {
 		// Initial values.
 		instrument = 0;
-		//init();
+		init();
 	}
 	
 	private void init() throws MidiUnavailableException {
@@ -127,19 +131,21 @@ public class MidiDemoModule implements IModule, IMessageListenerMidi, KryoSerial
 	public String getLabel() {
 		return "Midi Demo Synth Module";
 	}
-
+	/**
+	 * Receive this short message and send to the modules internal MIDI synthesiser.
+	 */
 	public void receive(ShortMessage message) {
 		rcvr.send(message, -1);
 	}
 
 	public void read(Kryo kryo, Input input) {
 		instrument = kryo.readObject(input, Integer.class);
-		/*try {
+		try {
 			init();
 		} catch (MidiUnavailableException e) {
 			JOptionPane.showMessageDialog(null, 
 					"An error occurred while this Midi Demo module was loading: \n" + e.getMessage());
-		}*/
+		}
 	}
 
 	public void write(Kryo kryo, Output output) {

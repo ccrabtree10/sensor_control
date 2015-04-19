@@ -31,8 +31,12 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 
-
-public class StMcConverter implements KryoSerializable, Serializable {
+/**
+ * This class is used to by the StMcModule to convert a sensor message to a MIDI message.
+ * @author Christopher Crabtree
+ *
+ */
+public class StMcConverter implements KryoSerializable {
 	private int channel, controller, rangeMin, rangeMax, onOffSwitchMin, 
 		onOffSwitchMax, conToSwitchThreshold;
 	private String conMethodName;
@@ -231,6 +235,13 @@ public class StMcConverter implements KryoSerializable, Serializable {
 		return controlPanel;
 	}
 	
+	/**
+	 * Convert the sensor message to a MIDI message, using the currently selected conversion 
+	 * process.
+	 * @param message The sensor message to convert.
+	 * @return The converted MIDI message.
+	 * @throws InvalidMidiDataException
+	 */
 	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException {
 		ShortMessage midiMessage = null;
 		try {

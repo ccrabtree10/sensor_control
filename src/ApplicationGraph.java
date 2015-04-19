@@ -1,7 +1,12 @@
 import com.mxgraph.model.mxCell;
 import com.mxgraph.view.mxGraph;
 
-
+/**
+ * A specialised mxGraph. Overrides methods for getLabel and isCellMoveable. This ensures that
+ * only GraphModules are moveable (not wires or ports). 
+ * @author Christopher Crabtree
+ *
+ */
 public class ApplicationGraph extends mxGraph {
 	
 	public ApplicationGraph() {

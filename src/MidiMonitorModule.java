@@ -14,7 +14,12 @@ import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-
+/**
+ * Module for monitoring MIDI messages. The module has one input which accepts MIDI 
+ * messages (of type ShortMessage). The details of the MIDI message are shown on the 
+ * modules control panel.
+ * @author Christopher Crabtree
+ */
 public class MidiMonitorModule implements IModule, IMessageListenerMidi, KryoSerializable {
 
 	private transient JPanel controlPanel;
@@ -58,6 +63,9 @@ public class MidiMonitorModule implements IModule, IMessageListenerMidi, KryoSer
 		}
 	}
 
+	/**
+	 * Receive this MIDI message and show its contents on the module's control panel.
+	 */
 	public void receive(ShortMessage message) {
 		channel.setText(Integer.toString(message.getChannel()));
 		if (message.getCommand() == ShortMessage.NOTE_ON) {

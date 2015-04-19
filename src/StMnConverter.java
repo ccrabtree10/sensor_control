@@ -27,7 +27,11 @@ import com.phidgets.event.SensorChangeEvent;
 
 
 
-
+/**
+ * This class is used by the StMnModule to convert a sensor message to a MIDI message.
+ * @author Christopher Crabtree
+ *
+ */
 public class StMnConverter implements KryoSerializable {
 	private int rangePitchLow, rangePitchHigh, rangeVelocityLow, rangeVelocityHigh, pitch, velocity, channel;
 	private float rangePitchRatio, rangeVelocityRatio;
@@ -146,15 +150,29 @@ public class StMnConverter implements KryoSerializable {
 		return controlPanel;
 	}
 	
+	/**
+	 * Generate a MIDI note message from the sensor message passed in.
+	 * @param message The message to convert.
+	 * @return The converted MIDI message.
+	 * @throws InvalidMidiDataException
+	 */
 	public ShortMessage generateMessage(MessageSensor message) throws InvalidMidiDataException {
 		return new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
 	}
 	
+	/**
+	 * Set the pitch of the MIDI message to generate.
+	 * @param message The value of this message sets the pitch of the MIDI note message.
+	 */
 	public void setPitch(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		pitch = Math.round((midiValue * rangePitchRatio) + rangePitchLow);
 	}
 	
+	/**
+	 * Set the velocity of the MIDI message to generate.
+	 * @param message The value of this message sets the velocity of the MIDI note message.
+	 */
 	public void setVelocity(MessageSensor message) {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
 		velocity = Math.round((midiValue * rangeVelocityRatio) + rangeVelocityLow);

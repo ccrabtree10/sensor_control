@@ -31,13 +31,19 @@ import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.jidesoft.swing.RangeSlider;
-
-public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender, KryoSerializable, Serializable {
+/**
+ * This module converts sensor messages to MIDI messages. It has one input which accepts 
+ * messages of type MessageSensor and one output which sends the converted MIDI messages 
+ * of type ShortMessage.
+ * @author Christopher Crabtree
+ */
+public class StMcModule implements IModule, IMessageListenerSensor, IMessageSender, KryoSerializable {
 	private ArrayList<IMessageListenerMidi> midiListeners;
 	private StMcConverter converter;
 	private transient ExecutorService exe;
 	
-	public StMcModule() {	
+	
+	public StMcModule() {
 		midiListeners = new ArrayList<IMessageListenerMidi>();
 		converter = new StMcConverter();
 		exe = Executors.newCachedThreadPool();
@@ -71,6 +77,11 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 		return "S-to-MIDI-Con";
 	}
 
+	/**
+	 * Convert this sensor message to a MIDI message and send to any MIDI listeners connected to 
+	 * this module.
+	 * @param message The sensor message to convert and send.
+	 */
 	public void receive(MessageSensor message) {
 		try {
 			final ShortMessage midiMessage = converter.generateMessage(message);
@@ -79,7 +90,6 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 				final IMessageListenerMidi midiListener = (IMessageListenerMidi) iterator.next();
 				exe.execute(new Runnable() { 
 					public void run() {
-						//su.log.log(su.f, "sending to midi out module");
 						midiListener.receive(midiMessage);
 					}
 				});
@@ -90,11 +100,21 @@ public class StMcModule implements IModule, IMessageListenerSensor, IMessageSend
 		
 	}
 
+	/**
+	 * Add the listener to this module's list of listeners.
+	 * @param listener The listener to add.
+	 * @throws ClassCastException Thrown if the listener passed in is not a MIDI listener i.e. does 
+	 * not implement IMessageListenerMidi.
+	 */
 	public void addMessageListener(Object listener) throws ClassCastException {
 		IMessageListenerMidi midiListener = (IMessageListenerMidi) listener;
 		midiListeners.add(midiListener);
 	}
 
+	/**
+	 * Remove this listener from the module's list of midi listeners.
+	 * @param listener The listener to remove.
+	 */
 	public void removeMessageListener(Object listener) {
 		midiListeners.remove(listener);
 	}
