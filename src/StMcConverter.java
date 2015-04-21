@@ -258,7 +258,7 @@ public class StMcConverter implements KryoSerializable {
 	// and rangeMax. These are adjustable via a slider in the module control panel.
 	private ShortMessage convertContinuous(MessageSensor message) throws InvalidMidiDataException {
 		int midiValue = Math.round(message.getValue()*CONVERSION_FACTOR);
-		float ratio = (rangeMax - rangeMin)/127;
+		float ratio = (float) (rangeMax - rangeMin)/127;
 		midiValue = Math.round((midiValue * ratio) + rangeMin);
 		return new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, controller, midiValue);
 	}

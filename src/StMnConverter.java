@@ -64,7 +64,6 @@ public class StMnConverter implements KryoSerializable {
 		controlPanel = new JPanel();
 		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 		final JPanel rowChannel = new JPanel();
-		final JPanel rowTrigger = new JPanel();
 		final JPanel rowPitch = new JPanel();
 		final JPanel rowVelocity = new JPanel();
 		final JComboBox<Integer> channelSelector = new JComboBox<Integer>(new DefaultComboBoxModel<Integer>(tempChannelArray));
@@ -74,16 +73,14 @@ public class StMnConverter implements KryoSerializable {
 		rangeVelocity.setPreferredSize(new Dimension(150, 30));
 		
 		// Build GUI control panel.
-		rowChannel.add(new JLabel("Channel"));
+		rowChannel.add(new JLabel("Channel:"));
 		rowChannel.add(channelSelector);
-		rowTrigger.add(new JLabel("On/Off Values:"));
-		rowPitch.add(new JLabel("Range: "));
+		rowPitch.add(new JLabel("Pitch Range: "));
 		rowPitch.add(rangePitch);
-		rowVelocity.add(new JLabel("Threshold: "));
+		rowVelocity.add(new JLabel("Vel. Range: "));
 		rowVelocity.add(rangeVelocity);
 		
 		controlPanel.add(rowChannel);
-		controlPanel.add(rowTrigger);
 		controlPanel.add(rowPitch);
 		controlPanel.add(rowVelocity);
 		
@@ -91,7 +88,6 @@ public class StMnConverter implements KryoSerializable {
 		channelSelector.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				channel = channelSelector.getSelectedIndex();
-				System.out.println(channel);
 			}
 		});
 		
@@ -99,7 +95,7 @@ public class StMnConverter implements KryoSerializable {
 			public void stateChanged(ChangeEvent arg0) {
 				rangePitchLow = rangePitch.getLowValue();
 				rangePitchHigh = rangePitch.getHighValue();
-				rangePitchRatio = (rangePitchHigh - rangePitchLow)/127;
+				rangePitchRatio = (float) (rangePitchHigh - rangePitchLow)/127;
 			}
 		});
 		
@@ -107,7 +103,7 @@ public class StMnConverter implements KryoSerializable {
 			public void stateChanged(ChangeEvent arg0) {
 				rangeVelocityLow = rangeVelocity.getLowValue();
 				rangeVelocityHigh = rangeVelocity.getHighValue();
-				rangeVelocityRatio = (rangeVelocityHigh - rangeVelocityLow)/127;
+				rangeVelocityRatio = (float) (rangeVelocityHigh - rangeVelocityLow)/127;
 			}
 		});
 		

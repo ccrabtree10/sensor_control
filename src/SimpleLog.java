@@ -14,7 +14,7 @@ public class SimpleLog {
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setLevel(f);
 		handler.setFormatter(new SimpleFormat());
-		log = Logger.getLogger("general_log");
+		log = Logger.getLogger("SimpleLog");
 		log.addHandler(handler);
 		log.setLevel(f);
 	}	

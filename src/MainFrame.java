@@ -144,11 +144,17 @@ public class MainFrame extends JFrame {
 				
 		insertPhidgetsModule.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					designerPanel.addModule(new PhidgetsModule());
-				} catch (PhidgetException e) {
-					e.printStackTrace();
-				}
+				Runnable task = new Runnable() {
+					public void run() {
+						try {					
+							designerPanel.addModule(new PhidgetsModule());
+						} catch (PhidgetException e) {
+							e.printStackTrace();
+						}
+					}
+				};
+				Thread thread = new Thread(task);
+				thread.start();
 			}
 		});
 		
